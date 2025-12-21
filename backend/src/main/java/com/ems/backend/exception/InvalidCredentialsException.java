@@ -1,7 +1,11 @@
 package com.ems.backend.exception;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.ResponseStatus;
+
+@ResponseStatus(HttpStatus.UNAUTHORIZED)
 public class InvalidCredentialsException extends RuntimeException {
-
-    // TODO: Implement invalid credentials exception
-
+    public InvalidCredentialsException(String message) {
+        super(message);
+    }
 }

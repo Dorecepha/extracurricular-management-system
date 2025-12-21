@@ -1,7 +1,11 @@
 package com.ems.backend.exception;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.ResponseStatus;
+
+@ResponseStatus(HttpStatus.BAD_REQUEST)
 public class BadRequestException extends RuntimeException {
-
-    // TODO: Implement bad request exception for validation failure
-
+    public BadRequestException(String message) {
+        super(message);
+    }
 }

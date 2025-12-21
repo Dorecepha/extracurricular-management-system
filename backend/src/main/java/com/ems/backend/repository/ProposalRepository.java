@@ -1,7 +1,14 @@
 package com.ems.backend.repository;
 
-public interface ProposalRepository {
+import com.ems.backend.entity.Proposal;
+import com.ems.backend.enums.ApprovalStatus;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
-    // TODO: Define proposal repository methods
+import java.util.List;
 
+@Repository
+public interface ProposalRepository extends JpaRepository<Proposal, Long> {
+    List<Proposal> findByOrganizer_UserID(Long organizerId);
+    List<Proposal> findByStatus(ApprovalStatus status);
 }

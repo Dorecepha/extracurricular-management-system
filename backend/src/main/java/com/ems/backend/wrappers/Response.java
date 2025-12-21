@@ -1,7 +1,16 @@
 package com.ems.backend.wrappers;
 
-public class Response {
+import lombok.AllArgsConstructor;
+import lombok.Builder; // Added
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-    // TODO: Implement response wrapper with fields for EMS entities
-
+@Data
+@Builder // Added
+@NoArgsConstructor
+@AllArgsConstructor
+public class Response<T> {
+    private int statusCode;
+    private String message;
+    private T data;
 }
