@@ -20,7 +20,7 @@ public class EventServiceImpl implements EventService {
     @Override
     @Transactional(readOnly = true)
     public Page<EventDTO> getAllApprovedEvents(Pageable pageable) {
-        Page<Event> events = eventRepository.findAll(pageable);
+        Page<Event> events = eventRepository.findByApprovalStatus(ApprovalStatus.APPROVED, pageable);
         return events.map(this::convertToDTO);
     }
 
