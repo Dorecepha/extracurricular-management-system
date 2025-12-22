@@ -37,6 +37,7 @@ public class SecurityConfig {
             )
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/auth/**").permitAll() // Open access
+                .requestMatchers("/api/events/**").permitAll() // Public event viewing
                 .requestMatchers("/error").permitAll()
                 // Role-based restrictions can also be done here or via @PreAuthorize
                 .anyRequest().authenticated()
