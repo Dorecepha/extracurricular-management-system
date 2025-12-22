@@ -25,13 +25,14 @@ public class ProposalServiceImpl implements ProposalService {
     @Transactional
     public ProposalDTO createProposal(ProposalDTO proposalDTO, Long organizerID) {
         // Validate organizer exists
-        EventOrganizer organizer = (EventOrganizer) userRepository.findById(organizerID)
+        User user = userRepository.findById(organizerID)
                 .orElseThrow(() -> new RuntimeException("Organizer not found with ID: " + organizerID));
 
         // Validate that user is actually an organizer
-        if (!(organizer instanceof EventOrganizer)) {
+        if (!(user instanceof EventOrganizer)) {
             throw new RuntimeException("User is not an event organizer");
         }
+        EventOrganizer organizer = (EventOrganizer) user;
 
         // Validate proposed date is in the future
         if (proposalDTO.getProposedDate().isBefore(LocalDate.now())) {
