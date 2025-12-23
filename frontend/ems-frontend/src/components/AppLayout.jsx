@@ -7,6 +7,11 @@ function AppLayout() {
   const navigate = useNavigate();
   const user = safeParseUser();
   const userRole = safeGetItem('userRole') || user?.role;
+  const displayName =
+    user?.organizationName ||
+    [user?.firstName, user?.lastName].filter(Boolean).join(' ') ||
+    user?.email ||
+    'Signed-in user';
 
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -39,8 +44,12 @@ function AppLayout() {
     <div className="flex min-h-screen bg-slate-100">
       <aside className="hidden w-64 flex-shrink-0 bg-[#1f5f89] text-white lg:block">
         <div className="flex h-full flex-col">
-          <div className="flex items-center justify-center py-8">
+          <div className="flex items-center justify-center py-8 flex-col gap-2">
              <h2 className="text-2xl font-bold tracking-wider">EMS</h2>
+             <div className="text-center text-blue-100 text-xs font-semibold leading-tight">
+               <div className="opacity-80">{displayName}</div>
+               <div className="uppercase tracking-wide text-[10px] opacity-70">{userRole || 'USER'}</div>
+             </div>
           </div>
           
           <nav className="flex-1 space-y-2 px-4">
