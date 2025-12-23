@@ -30,7 +30,6 @@ function App() {
             <Route path="/events" element={<EventList />} />
             <Route path="/proposals/submit" element={<CreateProposalForm />} />
             <Route path="/proposals/my" element={<MyProposalsList />} />
-            <Route path="/propose" element={<CreateProposalForm />} />
 
             <Route path="/admin/proposals" element={<ProposalReviewList />} />
             <Route path="/admin/proposals/:proposalID" element={<ProposalDetails />} />

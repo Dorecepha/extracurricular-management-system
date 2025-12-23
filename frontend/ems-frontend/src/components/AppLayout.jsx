@@ -1,14 +1,17 @@
 ﻿import React from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { LayoutDashboard, Calendar, LogOut, ClipboardList, Edit3, Inbox } from 'lucide-react';
+import { safeParseUser, safeGetItem } from '../lib/safeParse';
 
 function AppLayout() {
   const navigate = useNavigate();
-  const userRole = localStorage.getItem('userRole');
+  const user = safeParseUser();
+  const userRole = safeGetItem('userRole') || user?.role;
 
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('userRole');
+    localStorage.removeItem('user');
     navigate('/login');
   };
 

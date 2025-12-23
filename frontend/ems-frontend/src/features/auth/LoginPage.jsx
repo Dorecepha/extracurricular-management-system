@@ -3,7 +3,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { z } from 'zod';
-import api from '../../lib/axios';
+import { authApi } from './api';
 
 const loginSchema = z.object({
   email: z.string().email('Enter a valid email address'),
@@ -28,19 +28,21 @@ function LoginPage() {
   const onSubmit = async (values) => {
     setServerError('');
     try {
-      const response = await api.post('/auth/login', values);
-      
-      // Backend Wrapper: { data: { token: "...", role: "..." } }
-      const { token, role } = response.data.data || {};
-
+      const payload = await authApi.login(values);
+      const { token, role, user, id, userID } = payload || {};
       if (!token) {
         setServerError('Login succeeded but no token was returned.');
         return;
       }
 
+      localStorage.clear();
+      const normalizedUser = user
+        ? { ...user, userID: user.userID || user.id }
+        : { userID: userID || id, role };
+
       localStorage.setItem('token', token);
-      // Default to USER if role missing (or handle based on your backend)
-      localStorage.setItem('userRole', role || 'USER'); 
+      localStorage.setItem('userRole', role || normalizedUser?.role || 'USER'); 
+      localStorage.setItem('user', JSON.stringify(normalizedUser));
       
       navigate(from, { replace: true });
     } catch (error) {
