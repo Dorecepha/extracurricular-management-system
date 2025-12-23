@@ -3,7 +3,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { z } from 'zod';
-import api from '../../lib/axios';
+import { authApi } from './api';
 
 const loginSchema = z.object({
   email: z.string().email('Enter a valid email address'),
@@ -28,20 +28,46 @@ function LoginPage() {
   const onSubmit = async (values) => {
     setServerError('');
     try {
-      const response = await api.post('/auth/login', values);
-      
-      // Backend Wrapper: { data: { token: "...", role: "..." } }
-      const { token, role } = response.data.data || {};
+      // Clear localStorage BEFORE saving new data to prevent "poisoned" strings
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
 
+      // authApi.login returns unwrapped data: { token, email, role, id }
+      const data = await authApi.login(values);
+
+      // Extract fields from AuthResponse
+      const { token, email, role, id } = data || {};
+
+      // Validate token exists
       if (!token) {
         setServerError('Login succeeded but no token was returned.');
         return;
       }
 
+      // Validate role exists
+      if (!role) {
+        setServerError('Login succeeded but user role is missing.');
+        return;
+      }
+
+      // Validate role is one of the expected values (using camelCase identity)
+      const validRoles = ['STUDENT', 'ORGANIZER', 'ADMIN'];
+      if (!validRoles.includes(role)) {
+        setServerError(`Invalid user role: ${role}`);
+        return;
+      }
+
+      // Build user object matching camelCase identity standard
+      const user = {
+        userID: id,
+        email: email,
+        role: role
+      };
+
+      // Save token and user object to localStorage
       localStorage.setItem('token', token);
-      // Default to USER if role missing (or handle based on your backend)
-      localStorage.setItem('userRole', role || 'USER'); 
-      
+      localStorage.setItem('user', JSON.stringify(user));
+
       navigate(from, { replace: true });
     } catch (error) {
       setServerError(error.message || 'Unable to sign in.');
