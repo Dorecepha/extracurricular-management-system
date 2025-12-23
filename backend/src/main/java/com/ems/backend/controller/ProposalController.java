@@ -25,6 +25,7 @@ public class ProposalController {
 
     private final ProposalService proposalService;
     private final Validator validator;
+    private final ObjectMapper mapper = new ObjectMapper().findAndRegisterModules();
 
     @GetMapping
     @PreAuthorize("hasRole('ORGANIZER')")
@@ -50,9 +51,7 @@ public class ProposalController {
             @RequestPart(value = "files", required = false) MultipartFile[] files,
             @AuthenticationPrincipal CustomUserDetails userDetails) throws Exception {
 
-        ProposalDTO proposalDTO = new ObjectMapper()
-                .findAndRegisterModules()
-                .readValue(proposalJson, ProposalDTO.class);
+        ProposalDTO proposalDTO = mapper.readValue(proposalJson, ProposalDTO.class);
 
         var violations = validator.validate(proposalDTO);
         if (!violations.isEmpty()) {
@@ -71,13 +70,15 @@ public class ProposalController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @PutMapping("/{proposalID}/resubmit")
+    @PutMapping(value = "/{proposalID}/resubmit", consumes = {"multipart/form-data"})
     @PreAuthorize("hasRole('ORGANIZER')")
     public ResponseEntity<Response<ProposalDTO>> resubmit(
             @PathVariable Long proposalID,
-            @RequestBody ProposalDTO dto) {
+            @RequestPart("proposal") String proposalJson,
+            @RequestPart(value = "files", required = false) MultipartFile[] files) throws Exception {
 
-        ProposalDTO updated = proposalService.updateAndResubmit(proposalID, dto);
+        ProposalDTO dto = mapper.readValue(proposalJson, ProposalDTO.class);
+        ProposalDTO updated = proposalService.updateAndResubmit(proposalID, dto, files);
 
         Response<ProposalDTO> response = Response.<ProposalDTO>builder()
                 .statusCode(HttpStatus.OK.value())

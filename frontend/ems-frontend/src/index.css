@@ -1,1 +1,23 @@
-﻿@import "tailwindcss";
+@import "tailwindcss";
+
+@layer base {
+  body {
+    @apply bg-slate-50 text-slate-900 antialiased;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  }
+}
+
+@layer components {
+  .ems-card {
+    @apply bg-white border border-slate-200 rounded-2xl shadow-sm transition-all;
+  }
+  .ems-input {
+    @apply w-full border border-slate-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition bg-white font-normal;
+  }
+  .ems-btn-primary {
+    @apply bg-blue-600 text-white px-6 py-2.5 rounded-xl font-semibold hover:bg-blue-700 transition active:scale-95 disabled:opacity-50;
+  }
+  .ems-label {
+    @apply text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5 block;
+  }
+}

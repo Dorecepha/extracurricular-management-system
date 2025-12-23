@@ -1,75 +1,152 @@
-﻿import React, { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import React, { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { eventApi } from './api';
-import EventCard from './EventCard';
-import { Loader2, AlertCircle, ChevronLeft, ChevronRight } from 'lucide-react';
+import { safeParseUser } from '../../lib/safeParse';
+import { Search, ChevronLeft, ChevronRight, Loader2, Calendar, MapPin, Users, CheckCircle } from 'lucide-react';
 
 function EventList() {
+  const queryClient = useQueryClient();
   const [page, setPage] = useState(0);
+  const [search, setSearch] = useState('');
+  const user = safeParseUser();
+  const isStudent = user?.role === 'STUDENT';
 
-  const { data, isLoading, isError, error, isPlaceholderData } = useQuery({
-    queryKey: ['events', page],
-    queryFn: () => eventApi.getEvents(page),
-    placeholderData: (previousData) => previousData, // React Query v5 pattern
+  const { data: eventsData, isLoading } = useQuery({
+    queryKey: ['events', page, search],
+    queryFn: () => eventApi.getEvents(page, search)
   });
 
-  if (isLoading) return (
-    <div className="flex flex-col items-center justify-center min-h-[400px]">
-      <Loader2 className="animate-spin text-[#1f5f89] h-12 w-12" />
-      <p className="mt-4 text-slate-500 font-medium">Loading upcoming events...</p>
-    </div>
-  );
+  const { data: myRegistrations } = useQuery({
+    queryKey: ['my-registrations'],
+    queryFn: () => eventApi.getMyRegistrations(),
+    enabled: isStudent
+  });
 
-  if (isError) return (
-    <div className="bg-red-50 border border-red-200 rounded-2xl p-8 text-center">
-      <AlertCircle className="mx-auto text-red-500 mb-4" size={48} />
-      <h2 className="text-lg font-bold text-red-800">System Error</h2>
-      <p className="text-red-600">{error.message}</p>
-    </div>
-  );
+  const registeredEventIDs = isStudent
+    ? (myRegistrations?.map((reg) => reg?.eventID).filter(Boolean) ?? [])
+    : [];
+
+  const registerMutation = useMutation({
+    mutationFn: (id) => eventApi.registerForEvent(id),
+    onSuccess: (res) => {
+      alert(res.message || 'Registration successful');
+      queryClient.invalidateQueries({ queryKey: ['events'] });
+      queryClient.invalidateQueries({ queryKey: ['my-registrations'] });
+    },
+    onError: (err) => alert(err.message)
+  });
+
+  const events = eventsData?.content || [];
+  const totalPages = eventsData?.totalPages || 0;
 
   return (
-    <div className="space-y-8">
-      <div className="flex justify-between items-end">
-        <div>
-          <h1 className="text-3xl font-black text-slate-900 tracking-tight">Explore Events</h1>
-          <p className="text-slate-500">Discover and register for extracurricular activities.</p>
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h2 className="text-2xl font-bold text-slate-900">Campus Events</h2>
+        <div className="flex items-center gap-2 bg-white px-3 py-1.5 border border-slate-200 rounded-lg">
+          <Search size={16} className="text-slate-400" />
+          <input
+            className="outline-none text-sm bg-transparent"
+            placeholder="Search..."
+            value={search}
+            onChange={(e) => { setSearch(e.target.value); setPage(0); }}
+          />
         </div>
       </div>
 
-      {/* Grid mapping through data.content */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        {data?.content?.map((event) => (
-          <EventCard key={event.eventID} event={event} />
-        ))}
-      </div>
-
-      {/* Simple Pagination Footer */}
-      <div className="flex items-center justify-between border-t border-slate-200 pt-6">
-        <p className="text-sm text-slate-500">
-          Showing page {page + 1} of {data?.totalPages || 1}
-        </p>
-        <div className="flex gap-2">
-          <button
-            onClick={() => setPage(old => Math.max(old - 1, 0))}
-            disabled={page === 0}
-            className="p-2 rounded-lg border border-slate-200 disabled:opacity-30 hover:bg-slate-50 transition"
-          >
-            <ChevronLeft size={20} />
-          </button>
-          <button
-            onClick={() => {
-              if (!isPlaceholderData && page < (data?.totalPages - 1)) {
-                setPage(old => old + 1);
-              }
-            }}
-            disabled={page >= (data?.totalPages - 1)}
-            className="p-2 rounded-lg border border-slate-200 disabled:opacity-30 hover:bg-slate-50 transition"
-          >
-            <ChevronRight size={20} />
-          </button>
+      {isLoading ? (
+        <div className="flex justify-center py-16">
+          <Loader2 className="animate-spin text-blue-600" size={32} />
         </div>
-      </div>
+      ) : (
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {events.map(event => {
+              const isFull = event.currentRegistrations >= event.capacity;
+              const isRegistered = registeredEventIDs.includes(event.eventID);
+
+              return (
+                <div key={event.eventID} className="ems-card p-6 flex flex-col justify-between hover:border-blue-300">
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-start">
+                      <span className="text-[10px] font-bold px-2 py-1 bg-slate-100 rounded text-slate-600 uppercase tracking-wider">
+                        {event.organizationType}
+                      </span>
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-bold text-slate-900">{event.title}</h3>
+                      <p className="text-slate-500 text-sm mt-1 line-clamp-2">{event.description}</p>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2 text-sm text-slate-600">
+                        <Calendar size={14} /> {event.eventDate}
+                      </div>
+                      <div className="flex items-center gap-2 text-sm text-slate-600">
+                        <MapPin size={14} /> {event.venue}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between">
+                    <span className="flex items-center gap-2 text-xs text-slate-500 font-medium">
+                      <Users size={14} className="text-blue-600" />
+                      {event.currentRegistrations}/{event.capacity} registered
+                    </span>
+                    {isStudent ? (
+                      <button
+                        onClick={() => registerMutation.mutate(event.eventID)}
+                        disabled={registerMutation.isPending || isFull || isRegistered}
+                        className={`px-3 py-2 rounded-lg text-xs font-bold uppercase tracking-wide transition ${
+                          isRegistered
+                            ? 'bg-green-50 text-green-700 border border-green-200 cursor-not-allowed'
+                            : isFull
+                              ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
+                              : 'bg-blue-600 text-white hover:bg-blue-700'
+                        }`}
+                      >
+                        {isRegistered ? (
+                          <span className="flex items-center gap-1">
+                            <CheckCircle size={14} /> Registered
+                          </span>
+                        ) : isFull ? (
+                          'Full'
+                        ) : registerMutation.isPending ? (
+                          'Joining...'
+                        ) : (
+                          'Register'
+                        )}
+                      </button>
+                    ) : (
+                      <button className="ems-btn-primary w-full text-xs uppercase tracking-widest">
+                        View Event Details
+                      </button>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {totalPages > 1 && (
+            <div className="flex justify-center items-center gap-3 pt-4">
+              <button
+                disabled={page === 0}
+                onClick={() => setPage((p) => p - 1)}
+                className="px-3 py-2 border border-slate-200 rounded-lg bg-white text-sm text-slate-700 disabled:opacity-50 hover:bg-slate-50 transition"
+              >
+                <ChevronLeft size={16} />
+              </button>
+              <span className="text-sm text-slate-600">Page {page + 1} of {totalPages || 1}</span>
+              <button
+                disabled={page >= totalPages - 1}
+                onClick={() => setPage((p) => p + 1)}
+                className="px-3 py-2 border border-slate-200 rounded-lg bg-white text-sm text-slate-700 disabled:opacity-50 hover:bg-slate-50 transition"
+              >
+                <ChevronRight size={16} />
+              </button>
+            </div>
+          )}
+        </>
+      )}
     </div>
   );
 }

@@ -10,16 +10,25 @@ import com.ems.backend.enums.EventStatus;
 import com.ems.backend.repository.EventRepository;
 import com.ems.backend.repository.ProposalRepository;
 import com.ems.backend.repository.UserRepository;
+import com.ems.backend.security.CustomUserDetails;
+import com.ems.backend.service.AuditLogService;
 import com.ems.backend.service.FileStorageService;
 import com.ems.backend.service.ProposalService;
+import com.ems.backend.service.email.EmailService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.ArrayList;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -29,6 +38,9 @@ public class ProposalServiceImpl implements ProposalService {
     private final UserRepository userRepository;
     private final EventRepository eventRepository;
     private final FileStorageService fileStorageService;
+    private final AuditLogService auditLogService;
+    private final EmailService emailService;
+    private final ObjectMapper mapper = new ObjectMapper().findAndRegisterModules();
 
     @Override
     public List<ProposalDTO> getPendingProposals() {
@@ -76,6 +88,24 @@ public class ProposalServiceImpl implements ProposalService {
         event.setApprovalStatus(ApprovalStatus.APPROVED);
 
         eventRepository.save(event);
+
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && auth.getPrincipal() instanceof CustomUserDetails userDetails) {
+            User admin = userDetails.getUser();
+            auditLogService.log(
+                    admin.getUserID(),
+                    admin.getEmail(),
+                    "PROPOSAL_APPROVED",
+                    "PROPOSAL",
+                    proposalID,
+                    "SUCCESS"
+            );
+        }
+        emailService.sendNotification(
+                proposal.getOrganizer().getEmail(),
+                "Proposal Approved!",
+                "Congratulations! Your proposal '" + proposal.getTitle() + "' has been approved and is now live for registration."
+        );
     }
 
     @Override
@@ -87,6 +117,11 @@ public class ProposalServiceImpl implements ProposalService {
         proposal.setStatus(ApprovalStatus.REJECTED);
         proposal.setRejectionReason(reason);
         proposalRepository.save(proposal);
+        emailService.sendNotification(
+                proposal.getOrganizer().getEmail(),
+                "Proposal Status Update",
+                "Unfortunately, your proposal '" + proposal.getTitle() + "' was not approved. Reason: " + reason
+        );
     }
 
     @Override
@@ -130,7 +165,7 @@ public class ProposalServiceImpl implements ProposalService {
 
     @Override
     @Transactional
-    public ProposalDTO updateAndResubmit(Long proposalID, ProposalDTO dto) {
+    public ProposalDTO updateAndResubmit(Long proposalID, ProposalDTO dto, MultipartFile[] files) {
         Proposal proposal = proposalRepository.findById(proposalID)
                 .orElseThrow(() -> new RuntimeException("Proposal not found"));
 
@@ -142,7 +177,23 @@ public class ProposalServiceImpl implements ProposalService {
         proposal.setVenue(dto.getVenue());
         proposal.setCapacity(dto.getCapacity());
         proposal.setOrganizationType(dto.getOrganizationType());
-        proposal.setAttachmentsJson(dto.getAttachmentsJson());
+
+        List<Map<String, String>> combinedAttachments = new ArrayList<>();
+        try {
+            List<Map<String, String>> existing = mapper.readValue(dto.getAttachmentsJson() == null ? "[]" : dto.getAttachmentsJson(), new TypeReference<>() {});
+            combinedAttachments.addAll(existing);
+        } catch (Exception ignored) {}
+
+        if (files != null && files.length > 0) {
+            try {
+                String stored = fileStorageService.storeFiles(files);
+                List<Map<String, String>> newOnes = mapper.readValue(stored, new TypeReference<>() {});
+                combinedAttachments.addAll(newOnes);
+            } catch (Exception ignored) {}
+        }
+        try {
+            proposal.setAttachmentsJson(mapper.writeValueAsString(combinedAttachments));
+        } catch (Exception ignored) {}
 
         proposal.setStatus(ApprovalStatus.PENDING);
         proposal.setRejectionReason(null);

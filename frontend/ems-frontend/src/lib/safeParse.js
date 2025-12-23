@@ -23,3 +23,13 @@ export const safeParseUser = () => {
     return null;
   }
 };
+
+export const clearAuthData = () => {
+  try {
+    localStorage?.removeItem?.('token');
+    localStorage?.removeItem?.('userRole');
+    localStorage?.removeItem?.('user');
+  } catch (err) {
+    console.warn('clearAuthData error', err);
+  }
+};

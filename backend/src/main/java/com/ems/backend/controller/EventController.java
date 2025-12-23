@@ -9,7 +9,13 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+
+import com.ems.backend.security.CustomUserDetails;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/events")
@@ -21,10 +27,13 @@ public class EventController {
     @GetMapping
     public ResponseEntity<Response<Page<EventDTO>>> getAllEvents(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "9") int size) {
+            @RequestParam(defaultValue = "9") int size,
+            @RequestParam(required = false) String search,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
 
         Pageable pageable = PageRequest.of(page, size);
-        Page<EventDTO> events = eventService.getAllApprovedEvents(pageable);
+        Long currentUserId = userDetails != null ? userDetails.getUser().getUserID() : null;
+        Page<EventDTO> events = eventService.getAllApprovedEvents(pageable, search, currentUserId);
 
         Response<Page<EventDTO>> response = Response.<Page<EventDTO>>builder()
                 .statusCode(HttpStatus.OK.value())
@@ -36,13 +45,32 @@ public class EventController {
     }
 
     @GetMapping("/{eventID}")
-    public ResponseEntity<Response<EventDTO>> getEventByID(@PathVariable Long eventID) {
-        EventDTO event = eventService.getEventByID(eventID);
+    public ResponseEntity<Response<EventDTO>> getEventByID(@PathVariable Long eventID,
+                                                           @AuthenticationPrincipal CustomUserDetails userDetails) {
+        Long currentUserId = userDetails != null ? userDetails.getUser().getUserID() : null;
+        EventDTO event = eventService.getEventByID(eventID, currentUserId);
 
         Response<EventDTO> response = Response.<EventDTO>builder()
                 .statusCode(HttpStatus.OK.value())
                 .message("Event retrieved successfully")
                 .data(event)
+                .build();
+
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/managed")
+    @PreAuthorize("hasRole('ORGANIZER')")
+    public ResponseEntity<Response<List<EventDTO>>> getManagedEvents(
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+
+        Long organizerId = userDetails.getUser().getUserID();
+        List<EventDTO> managedEvents = eventService.getEventsByOrganizer(organizerId);
+
+        Response<List<EventDTO>> response = Response.<List<EventDTO>>builder()
+                .statusCode(HttpStatus.OK.value())
+                .message("Managed events retrieved successfully")
+                .data(managedEvents)
                 .build();
 
         return ResponseEntity.ok(response);

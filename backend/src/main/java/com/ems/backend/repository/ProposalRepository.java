@@ -11,4 +11,6 @@ import java.util.List;
 public interface ProposalRepository extends JpaRepository<Proposal, Long> {
     List<Proposal> findByOrganizer_UserID(Long organizerId);
     List<Proposal> findByStatus(ApprovalStatus status);
+    long countByStatus(ApprovalStatus status);
+    long countByOrganizer_UserIDAndStatus(Long organizerID, ApprovalStatus status);
 }

@@ -44,7 +44,8 @@ public class CustomUserDetails implements UserDetails {
 
     @Override
     public boolean isAccountNonLocked() {
-        return user.getAccountStatus() != AccountStatus.SUSPENDED;
+        // Only ACTIVE users are "unlocked"
+        return user.getAccountStatus() == AccountStatus.ACTIVE;
     }
 
     @Override
@@ -54,6 +55,7 @@ public class CustomUserDetails implements UserDetails {
 
     @Override
     public boolean isEnabled() {
+        // Users in SUSPENDED or INACTIVE state cannot log in
         return user.getAccountStatus() == AccountStatus.ACTIVE;
     }
 }

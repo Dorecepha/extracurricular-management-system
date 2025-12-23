@@ -6,6 +6,7 @@ import {
   ArrowLeft, CheckCircle, XCircle, Loader2, AlertCircle,
   MapPin, Clock, Users, FileText, Paperclip, ExternalLink
 } from 'lucide-react';
+import { format } from 'date-fns';
 
 const parseFiles = (json) => {
   try {
@@ -15,6 +16,12 @@ const parseFiles = (json) => {
     console.warn('Attachment parse error', err);
     return [];
   }
+};
+
+const formatDate = (value) => {
+  if (!value) return 'TBD';
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? value : format(date, 'dd/MM/yyyy');
 };
 
 function ProposalDetails() {
@@ -78,8 +85,11 @@ function ProposalDetails() {
 
   return (
     <div className="max-w-5xl mx-auto space-y-8 pb-20">
-      <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-slate-400 hover:text-[#1f5f89] transition-colors font-medium text-sm">
-        <ArrowLeft size={18} /> Back to Review Queue
+      <button 
+        onClick={() => navigate('/admin/proposals')} 
+        className="flex items-center gap-2 text-slate-400 hover:text-[#1f5f89] transition-all font-bold uppercase text-xs tracking-widest mb-6"
+      >
+        <ArrowLeft size={16} /> Back to Review Inbox
       </button>
 
       <div className="bg-white rounded-[40px] shadow-sm border border-slate-200 overflow-hidden">
@@ -106,7 +116,7 @@ function ProposalDetails() {
             <div className="bg-slate-50 p-6 rounded-3xl border border-slate-100 space-y-1">
                <Clock className="text-[#1f5f89] mb-2" size={20} />
                <p className="text-[10px] font-black text-slate-400 uppercase">Proposed Time</p>
-               <p className="font-bold text-slate-900">{proposal.proposedDate}</p>
+               <p className="font-bold text-slate-900">{formatDate(proposal.proposedDate)}</p>
                <p className="text-xs text-slate-500 font-medium">{proposal.startTime} - {proposal.endTime}</p>
             </div>
             <div className="bg-slate-50 p-6 rounded-3xl border border-slate-100 space-y-1">
