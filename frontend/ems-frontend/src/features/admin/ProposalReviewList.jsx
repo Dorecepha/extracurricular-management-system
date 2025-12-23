@@ -5,8 +5,9 @@ import { adminApi } from './adminApi'; // DNA: Use adminApi, not eventApi
 import { Clock, MapPin, ChevronRight, Loader2, AlertCircle, Inbox } from 'lucide-react';
 
 function ProposalReviewList() {
+  console.log('🚀 ProposalReviewList component MOUNTED');
   const navigate = useNavigate();
-  
+
   const { data: rawData, isLoading, isError, error } = useQuery({
     queryKey: ['admin', 'proposals'],
     queryFn: adminApi.getPendingProposals

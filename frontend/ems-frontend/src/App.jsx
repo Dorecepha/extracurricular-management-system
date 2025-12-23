@@ -30,11 +30,13 @@ function App() {
           }>
             <Route path="/dashboard" element={<div className="p-4 text-2xl">Dashboard Placeholder</div>} />
             <Route path="/events" element={<EventList />} />
-            <Route path="/propose" element={<CreateProposalForm />} />
-            <Route path="/admin" element={<ProtectedRoute role="ADMIN" />}>
-            <Route path="proposals" element={<ProposalReviewList />} />
-            <Route path="proposals/:proposalID" element={<ProposalDetails />} />
-      </Route>
+
+            {/* ORGANIZER ROUTE - Path must match sidebar link exactly */}
+            <Route path="/proposals/submit" element={<CreateProposalForm />} />
+
+            {/* ADMIN ROUTES - Path must match sidebar link exactly */}
+            <Route path="/admin/proposals" element={<ProposalReviewList />} />
+            <Route path="/admin/proposals/:proposalID" element={<ProposalDetails />} />
           </Route>
 
           {/* Fallback */}
