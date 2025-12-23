@@ -17,6 +17,7 @@ import UpdateReviewDetails from './features/admin/UpdateReviewDetails';
 import OrganizerEvents from './features/events/OrganizerEvents';
 import Dashboard from './features/dashboard/Dashboard';
 import AuditLogs from './features/admin/AuditLogs';
+import ManageAccounts from './features/admin/ManageAccounts';
 
 const queryClient = new QueryClient();
 
@@ -46,6 +47,7 @@ function App() {
             <Route path="/admin/updates" element={<UpdateReviewList />} />
             <Route path="/admin/updates/:requestID" element={<UpdateReviewDetails />} />
             <Route path="/admin/audit" element={<AuditLogs />} />
+            <Route path="/admin/users" element={<ManageAccounts />} />
           </Route>
 
           <Route path="*" element={<Navigate to="/login" replace />} />

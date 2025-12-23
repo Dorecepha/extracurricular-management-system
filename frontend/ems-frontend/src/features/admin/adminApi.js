@@ -20,5 +20,17 @@ export const adminApi = {
   rejectProposal: async (id, rejectionReason) => {
     const response = await api.put(`/admin/proposals/${id}/reject`, { rejectionReason });
     return response.data;
+  },
+  getAllUsers: async () => {
+    const res = await api.get('/admin/users');
+    return res.data.data;
+  },
+  updateUserStatus: async (userID, status) => {
+    const res = await api.put(`/admin/users/${userID}/status?status=${status}`);
+    return res.data;
+  },
+  updateUserRole: async (userID, role) => {
+    const res = await api.put(`/admin/users/${userID}/role?role=${role}`);
+    return res.data;
   }
 };

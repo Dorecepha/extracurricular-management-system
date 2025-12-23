@@ -3,6 +3,7 @@ C:\Users\MINH TIN\Dropbox\PC\Desktop\Projects\STD 5 ARG\extracurricular-manageme
 C:\Users\MINH TIN\Dropbox\PC\Desktop\Projects\STD 5 ARG\extracurricular-management-system\backend\src\main\java\com\ems\backend\config\WebConfig.java
 C:\Users\MINH TIN\Dropbox\PC\Desktop\Projects\STD 5 ARG\extracurricular-management-system\backend\src\main\java\com\ems\backend\controller\ActivityController.java
 C:\Users\MINH TIN\Dropbox\PC\Desktop\Projects\STD 5 ARG\extracurricular-management-system\backend\src\main\java\com\ems\backend\controller\AdminController.java
+C:\Users\MINH TIN\Dropbox\PC\Desktop\Projects\STD 5 ARG\extracurricular-management-system\backend\src\main\java\com\ems\backend\controller\AdminUserController.java
 C:\Users\MINH TIN\Dropbox\PC\Desktop\Projects\STD 5 ARG\extracurricular-management-system\backend\src\main\java\com\ems\backend\controller\AuthController.java
 C:\Users\MINH TIN\Dropbox\PC\Desktop\Projects\STD 5 ARG\extracurricular-management-system\backend\src\main\java\com\ems\backend\controller\DashboardController.java
 C:\Users\MINH TIN\Dropbox\PC\Desktop\Projects\STD 5 ARG\extracurricular-management-system\backend\src\main\java\com\ems\backend\controller\EventController.java
@@ -19,6 +20,7 @@ C:\Users\MINH TIN\Dropbox\PC\Desktop\Projects\STD 5 ARG\extracurricular-manageme
 C:\Users\MINH TIN\Dropbox\PC\Desktop\Projects\STD 5 ARG\extracurricular-management-system\backend\src\main\java\com\ems\backend\dto\RegisterRequest.java
 C:\Users\MINH TIN\Dropbox\PC\Desktop\Projects\STD 5 ARG\extracurricular-management-system\backend\src\main\java\com\ems\backend\dto\RegistrationDTO.java
 C:\Users\MINH TIN\Dropbox\PC\Desktop\Projects\STD 5 ARG\extracurricular-management-system\backend\src\main\java\com\ems\backend\dto\ReviewQueueItemDTO.java
+C:\Users\MINH TIN\Dropbox\PC\Desktop\Projects\STD 5 ARG\extracurricular-management-system\backend\src\main\java\com\ems\backend\dto\UserDTO.java
 C:\Users\MINH TIN\Dropbox\PC\Desktop\Projects\STD 5 ARG\extracurricular-management-system\backend\src\main\java\com\ems\backend\EmsApplication.java
 C:\Users\MINH TIN\Dropbox\PC\Desktop\Projects\STD 5 ARG\extracurricular-management-system\backend\src\main\java\com\ems\backend\entity\Administrator.java
 C:\Users\MINH TIN\Dropbox\PC\Desktop\Projects\STD 5 ARG\extracurricular-management-system\backend\src\main\java\com\ems\backend\entity\AuditLog.java
@@ -77,7 +79,9 @@ C:\Users\MINH TIN\Dropbox\PC\Desktop\Projects\STD 5 ARG\extracurricular-manageme
 C:\Users\MINH TIN\Dropbox\PC\Desktop\Projects\STD 5 ARG\extracurricular-management-system\backend\src\main\java\com\ems\backend\service\impl\NotificationServiceImpl.java
 C:\Users\MINH TIN\Dropbox\PC\Desktop\Projects\STD 5 ARG\extracurricular-management-system\backend\src\main\java\com\ems\backend\service\impl\ProposalServiceImpl.java
 C:\Users\MINH TIN\Dropbox\PC\Desktop\Projects\STD 5 ARG\extracurricular-management-system\backend\src\main\java\com\ems\backend\service\impl\RegistrationServiceImpl.java
+C:\Users\MINH TIN\Dropbox\PC\Desktop\Projects\STD 5 ARG\extracurricular-management-system\backend\src\main\java\com\ems\backend\service\impl\UserServiceImpl.java
 C:\Users\MINH TIN\Dropbox\PC\Desktop\Projects\STD 5 ARG\extracurricular-management-system\backend\src\main\java\com\ems\backend\service\NotificationService.java
 C:\Users\MINH TIN\Dropbox\PC\Desktop\Projects\STD 5 ARG\extracurricular-management-system\backend\src\main\java\com\ems\backend\service\ProposalService.java
 C:\Users\MINH TIN\Dropbox\PC\Desktop\Projects\STD 5 ARG\extracurricular-management-system\backend\src\main\java\com\ems\backend\service\RegistrationService.java
+C:\Users\MINH TIN\Dropbox\PC\Desktop\Projects\STD 5 ARG\extracurricular-management-system\backend\src\main\java\com\ems\backend\service\UserService.java
 C:\Users\MINH TIN\Dropbox\PC\Desktop\Projects\STD 5 ARG\extracurricular-management-system\backend\src\main\java\com\ems\backend\wrappers\Response.java

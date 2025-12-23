@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
-import { Calendar, FilePlus, ClipboardList, ShieldCheck, ShieldAlert, LogOut, Bookmark, UserCircle, LayoutDashboard } from 'lucide-react';
+import { Calendar, FilePlus, ClipboardList, ShieldCheck, ShieldAlert, LogOut, Bookmark, UserCircle, LayoutDashboard, Users } from 'lucide-react';
 import { safeParseUser, safeGetItem, clearAuthData } from '../lib/safeParse';
 
 function AppLayout() {
@@ -30,6 +30,7 @@ function AppLayout() {
     { to: '/proposals/my', label: 'Application History', icon: Bookmark, roles: ['ORGANIZER'] },
     { to: '/my-events', label: 'My Registrations', icon: Bookmark, roles: ['STUDENT'] },
     { to: '/admin/proposals', label: 'Review Inbox', icon: ShieldCheck, roles: ['ADMIN'] },
+    { to: '/admin/users', label: 'Account Governance', icon: Users, roles: ['ADMIN'] },
     { to: '/admin/audit', label: 'Audit Trail', icon: ShieldAlert, roles: ['ADMIN'] },
   ];
 

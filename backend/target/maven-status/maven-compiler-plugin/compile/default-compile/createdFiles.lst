@@ -7,6 +7,7 @@ com\ems\backend\service\email\EmailService.class
 com\ems\backend\entity\Administrator$AdministratorBuilderImpl.class
 com\ems\backend\repository\RegistrationRepository.class
 com\ems\backend\controller\ActivityController.class
+com\ems\backend\dto\UserDTO$UserDTOBuilder.class
 com\ems\backend\service\AuditLogService.class
 com\ems\backend\wrappers\Response.class
 com\ems\backend\service\EventService.class
@@ -28,6 +29,7 @@ com\ems\backend\security\JwtAuthenticationFilter.class
 com\ems\backend\service\impl\FileStorageServiceImpl.class
 com\ems\backend\service\impl\ProposalServiceImpl$2.class
 com\ems\backend\entity\Student$StudentBuilder.class
+com\ems\backend\controller\AdminUserController.class
 com\ems\backend\entity\AuditLog$AuditLogBuilder.class
 com\ems\backend\security\CustomUserDetails$CustomUserDetailsBuilder.class
 com\ems\backend\dto\AuthResponse.class
@@ -50,6 +52,7 @@ com\ems\backend\enums\NotificationType.class
 com\ems\backend\enums\UserRole.class
 com\ems\backend\entity\Administrator.class
 com\ems\backend\entity\Proposal.class
+com\ems\backend\service\impl\UserServiceImpl.class
 com\ems\backend\service\RegistrationService.class
 com\ems\backend\exception\GlobalExceptionHandler.class
 com\ems\backend\wrappers\Response$ResponseBuilder.class
@@ -86,6 +89,7 @@ com\ems\backend\repository\NotificationRepository.class
 com\ems\backend\controller\EventController.class
 com\ems\backend\entity\User.class
 com\ems\backend\service\impl\RegistrationServiceImpl.class
+com\ems\backend\dto\UserDTO.class
 com\ems\backend\repository\AuditLogRepository.class
 com\ems\backend\service\email\impl\OutlookEmailAdapter.class
 com\ems\backend\dto\DashboardDTO$DashboardDTOBuilder.class
@@ -105,6 +109,7 @@ com\ems\backend\service\impl\ProposalServiceImpl.class
 com\ems\backend\service\FileStorageService.class
 com\ems\backend\dto\ProposalDTO$ProposalDTOBuilder.class
 com\ems\backend\repository\UserRepository.class
+com\ems\backend\service\UserService.class
 com\ems\backend\repository\EventUpdateRequestRepository.class
 com\ems\backend\EmsApplication.class
 com\ems\backend\entity\User$UserBuilder.class
