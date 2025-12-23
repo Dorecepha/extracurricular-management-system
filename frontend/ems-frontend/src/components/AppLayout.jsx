@@ -1,6 +1,6 @@
 ﻿import React from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Calendar, LogOut, ClipboardList, Edit3, Inbox } from 'lucide-react';
+import { LayoutDashboard, Calendar, LogOut, ClipboardList, Edit3, Inbox, Bookmark } from 'lucide-react';
 import { safeParseUser, safeGetItem } from '../lib/safeParse';
 
 function AppLayout() {
@@ -25,6 +25,10 @@ function AppLayout() {
     { to: '/events', label: 'Events', icon: Calendar },
   ];
 
+  const studentNav = [
+    { to: '/my-events', label: 'My Events', icon: Bookmark },
+  ];
+
   const organizerNav = [
     { to: '/proposals/submit', label: 'Apply to Host Event', icon: Edit3 },
     { to: '/proposals/my', label: 'My Proposals', icon: ClipboardList },
@@ -36,6 +40,7 @@ function AppLayout() {
 
   const navItems = [
     ...baseNav,
+    ...(userRole === 'STUDENT' ? studentNav : []),
     ...(userRole === 'ORGANIZER' ? organizerNav : []),
     ...(userRole === 'ADMIN' ? adminNav : []),
   ];

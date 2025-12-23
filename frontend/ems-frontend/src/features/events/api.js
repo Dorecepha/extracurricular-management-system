@@ -25,6 +25,21 @@ export const eventApi = {
   resubmitProposal: async (proposalID, data) => {
     const response = await api.put(`/proposals/${proposalID}/resubmit`, data);
     return response.data;
+  },
+
+  registerForEvent: async (eventID) => {
+    const response = await api.post(`/registrations/event/${eventID}`);
+    return response.data;
+  },
+
+  getMyRegistrations: async () => {
+    const response = await api.get('/registrations/me');
+    return response.data.data;
+  },
+
+  cancelRegistration: async (registrationID) => {
+    const response = await api.delete(`/registrations/${registrationID}`);
+    return response.data;
   }
 };
 

@@ -1,7 +1,115 @@
 package com.ems.backend.service.impl;
 
-public class RegistrationServiceImpl {
+import com.ems.backend.dto.RegistrationDTO;
+import com.ems.backend.entity.Event;
+import com.ems.backend.entity.Registration;
+import com.ems.backend.entity.Student;
+import com.ems.backend.entity.User;
+import com.ems.backend.enums.RegistrationStatus;
+import com.ems.backend.exception.NotFoundException;
+import com.ems.backend.repository.EventRepository;
+import com.ems.backend.repository.RegistrationRepository;
+import com.ems.backend.repository.UserRepository;
+import com.ems.backend.service.RegistrationService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-    // TODO: Implement registration service
+import java.time.LocalDateTime;
+import java.util.List;
 
+@Service
+@RequiredArgsConstructor
+public class RegistrationServiceImpl implements RegistrationService {
+
+    private final RegistrationRepository registrationRepository;
+    private final EventRepository eventRepository;
+    private final UserRepository userRepository;
+
+    @Override
+    @Transactional
+    public void registerStudentForEvent(Long eventID, Long studentID) {
+        Event event = eventRepository.findById(eventID)
+                .orElseThrow(() -> new NotFoundException("Event not found with ID: " + eventID));
+
+        User user = userRepository.findById(studentID)
+                .orElseThrow(() -> new NotFoundException("Student not found with ID: " + studentID));
+        if (!(user instanceof Student student)) {
+            throw new IllegalStateException("User is not a student.");
+        }
+
+        if (registrationRepository.existsByStudent_UserIDAndEvent_EventID(studentID, eventID)) {
+            throw new IllegalStateException("You are already registered for this event.");
+        }
+
+        boolean hasOverlap = registrationRepository.existsByStudentAndDateOverlap(
+                studentID, event.getEventDate(), event.getStartTime(), event.getEndTime());
+        if (hasOverlap) {
+            throw new IllegalStateException("Schedule conflict: You are already attending an event during this time.");
+        }
+
+        Integer currentRegistrations = event.getCurrentRegistrations() == null
+                ? 0
+                : event.getCurrentRegistrations();
+
+        if (currentRegistrations >= event.getCapacity()) {
+            throw new IllegalStateException("Event is full.");
+        }
+
+        try {
+            event.setCurrentRegistrations(currentRegistrations + 1);
+            eventRepository.saveAndFlush(event);
+
+            Registration registration = Registration.builder()
+                    .event(event)
+                    .student(student)
+                    .status(RegistrationStatus.CONFIRMED)
+                    .registeredAt(LocalDateTime.now())
+                    .build();
+
+            registrationRepository.save(registration);
+        } catch (ObjectOptimisticLockingFailureException e) {
+            throw new IllegalStateException("Registration failed due to high demand. Please try again.");
+        }
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<RegistrationDTO> getMyRegistrations(Long studentID) {
+        List<Registration> registrations = registrationRepository.findByStudent_UserID(studentID);
+
+        return registrations.stream().map(reg -> {
+            Event event = reg.getEvent();
+            return RegistrationDTO.builder()
+                    .registrationID(reg.getRegistrationID())
+                    .eventID(event.getEventID())
+                    .eventTitle(event.getTitle())
+                    .eventDate(event.getEventDate() != null ? event.getEventDate().toString() : null)
+                    .venue(event.getVenue())
+                    .status(reg.getStatus())
+                    .registeredAt(reg.getRegisteredAt())
+                    .build();
+        }).toList();
+    }
+
+    @Override
+    @Transactional
+    public void cancelRegistration(Long registrationID, Long studentID) {
+        Registration registration = registrationRepository.findById(registrationID)
+                .orElseThrow(() -> new NotFoundException("Registration not found with ID: " + registrationID));
+
+        if (!registration.getStudent().getUserID().equals(studentID)) {
+            throw new IllegalStateException("Unauthorized to cancel this registration.");
+        }
+
+        Event event = registration.getEvent();
+        Integer currentRegistrations = event.getCurrentRegistrations() == null
+                ? 0
+                : event.getCurrentRegistrations();
+        event.setCurrentRegistrations(Math.max(0, currentRegistrations - 1));
+        eventRepository.save(event);
+
+        registrationRepository.delete(registration);
+    }
 }

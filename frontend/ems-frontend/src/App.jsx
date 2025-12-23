@@ -6,6 +6,7 @@ import RegisterPage from './features/auth/RegisterPage';
 import AppLayout from './components/AppLayout';
 import ProtectedRoute from './components/ProtectedRoute';
 import EventList from './features/events/EventList';
+import RegistrationHistory from './features/events/RegistrationHistory';
 import CreateProposalForm from './features/events/CreateProposalForm';
 import MyProposalsList from './features/events/MyProposalsList';
 import ProposalReviewList from './features/admin/ProposalReviewList';
@@ -28,6 +29,7 @@ function App() {
           }>
             <Route path="/dashboard" element={<div className="p-4 text-2xl">Dashboard Placeholder</div>} />
             <Route path="/events" element={<EventList />} />
+            <Route path="/my-events" element={<RegistrationHistory />} />
             <Route path="/proposals/submit" element={<CreateProposalForm />} />
             <Route path="/proposals/my" element={<MyProposalsList />} />
 
