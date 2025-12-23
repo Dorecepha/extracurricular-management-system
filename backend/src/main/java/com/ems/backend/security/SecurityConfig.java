@@ -5,6 +5,7 @@ import com.ems.backend.exception.CustomAuthenticationEntryPoint;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -37,7 +38,7 @@ public class SecurityConfig {
             )
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/auth/**").permitAll() // Open access
-                .requestMatchers("/api/events/**").permitAll() // Public event viewing
+                .requestMatchers(HttpMethod.GET, "/api/events/**").permitAll() // Public event viewing for guests
                 .requestMatchers("/api/uploads/**").permitAll() // Allow public access to uploaded assets
                 .requestMatchers("/error").permitAll()
                 // Role-based restrictions can also be done here or via @PreAuthorize

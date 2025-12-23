@@ -12,6 +12,7 @@ api.interceptors.request.use(
       config.headers = config.headers ?? {};
       config.headers.Authorization = `Bearer ${token}`;
     }
+    // If no token, just send the request without it (guest browsing)
     return config;
   },
   (error) => Promise.reject(error)

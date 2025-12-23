@@ -8,9 +8,9 @@ import java.util.List;
 
 public interface EventService {
 
-    Page<EventDTO> getAllApprovedEvents(Pageable pageable, String search);
+    Page<EventDTO> getAllApprovedEvents(Pageable pageable, String search, Long currentUserID);
 
     List<EventDTO> getEventsByOrganizer(Long organizerID);
 
-    EventDTO getEventByID(Long eventID);
+    EventDTO getEventByID(Long eventID, Long currentUserID);
 }

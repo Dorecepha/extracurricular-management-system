@@ -28,10 +28,12 @@ public class EventController {
     public ResponseEntity<Response<Page<EventDTO>>> getAllEvents(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "9") int size,
-            @RequestParam(required = false) String search) {
+            @RequestParam(required = false) String search,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
 
         Pageable pageable = PageRequest.of(page, size);
-        Page<EventDTO> events = eventService.getAllApprovedEvents(pageable, search);
+        Long currentUserId = userDetails != null ? userDetails.getUser().getUserID() : null;
+        Page<EventDTO> events = eventService.getAllApprovedEvents(pageable, search, currentUserId);
 
         Response<Page<EventDTO>> response = Response.<Page<EventDTO>>builder()
                 .statusCode(HttpStatus.OK.value())
@@ -43,8 +45,10 @@ public class EventController {
     }
 
     @GetMapping("/{eventID}")
-    public ResponseEntity<Response<EventDTO>> getEventByID(@PathVariable Long eventID) {
-        EventDTO event = eventService.getEventByID(eventID);
+    public ResponseEntity<Response<EventDTO>> getEventByID(@PathVariable Long eventID,
+                                                           @AuthenticationPrincipal CustomUserDetails userDetails) {
+        Long currentUserId = userDetails != null ? userDetails.getUser().getUserID() : null;
+        EventDTO event = eventService.getEventByID(eventID, currentUserId);
 
         Response<EventDTO> response = Response.<EventDTO>builder()
                 .statusCode(HttpStatus.OK.value())

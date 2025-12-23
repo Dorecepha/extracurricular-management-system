@@ -3,6 +3,7 @@ package com.ems.backend.dto;
 import com.ems.backend.enums.ApprovalStatus;
 import com.ems.backend.enums.EventStatus;
 import com.ems.backend.enums.OrganizationType;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -32,6 +33,11 @@ public class EventDTO {
     private OrganizationType organizationType;
     private Long organizerID;
     private String organizerName;
+    private String organizationName;
+    @JsonProperty("isRegistered")
+    private boolean isRegistered;
+    @JsonProperty("isOwner")
+    private boolean isOwner;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

@@ -4,8 +4,8 @@ export const eventApi = {
   /**
    * Corrected for: Response<Page<EventDTO>>
    */
-  getEvents: async (page = 0, search = '') => {
-    const params = new URLSearchParams({ page, size: 9 });
+  getEvents: async (page = 0, search = '', size = 9) => {
+    const params = new URLSearchParams({ page, size });
     if (search) params.append('search', search);
     const response = await api.get(`/events?${params.toString()}`);
     return response.data.data;
