@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { dashboardApi } from './dashboardApi';
 import { safeParseUser } from '../../lib/safeParse';
 import DashboardCalendar from './components/DashboardCalendar';
-import { Users, AlertCircle, ArrowRight, Loader2, CheckCircle, X, Bookmark } from 'lucide-react';
+import { Users, AlertCircle, ArrowRight, Loader2, CheckCircle, X, Bookmark, ShieldCheck } from 'lucide-react';
 
 function Dashboard() {
   const navigate = useNavigate();
@@ -108,11 +108,20 @@ function Dashboard() {
           )}
 
           {user?.role === 'ADMIN' && (
-            <div className="ems-card p-6 bg-blue-600 text-white border-none">
-              <h3 className="font-bold uppercase text-xs tracking-widest text-blue-200 mb-2">Admin Notice</h3>
-              <p className="text-sm font-medium leading-relaxed italic">
-                "You have {data?.pendingProposalsCount ?? 0} pending approvals in the inbox."
-              </p>
+            <div className="ems-card p-8 bg-indigo-900 text-white border-none shadow-xl">
+              <h3 className="font-bold text-xs uppercase tracking-widest text-indigo-300 mb-4 flex items-center gap-2">
+                <ShieldCheck size={16}/> Admin Action Center
+              </h3>
+              <div className="space-y-4">
+                <div className="p-4 bg-white/10 rounded-2xl flex justify-between items-center">
+                  <span className="text-sm font-medium">New Proposals</span>
+                  <span className="bg-white text-indigo-900 px-3 py-1 rounded-lg font-black text-xs">{data?.pendingProposalsCount ?? 0}</span>
+                </div>
+                <div className="p-4 bg-white/10 rounded-2xl flex justify-between items-center">
+                  <span className="text-sm font-medium">Modification Requests</span>
+                  <span className="bg-amber-400 text-black px-3 py-1 rounded-lg font-black text-xs">{data?.pendingUpdatesCount || 0}</span>
+                </div>
+              </div>
             </div>
           )}
         </div>

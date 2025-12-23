@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { eventApi } from './api';
 import { 
@@ -20,6 +20,14 @@ const formatDate = (value) => {
   if (!value) return 'TBD';
   const date = new Date(value);
   return Number.isNaN(date.getTime()) ? value : format(date, 'dd/MM/yyyy');
+};
+
+const getStatusStyle = (status) => {
+  switch(status) {
+    case 'APPROVED': return 'bg-emerald-50 text-emerald-700 border-emerald-100'; // DNA FIX: Green for approved
+    case 'REJECTED': return 'bg-rose-50 text-rose-700 border-rose-100';
+    default: return 'bg-blue-50 text-blue-700 border-blue-100';
+  }
 };
 
 function MyProposalsList() {
@@ -83,7 +91,10 @@ function MyProposalsList() {
   return (
     <div className="max-w-5xl mx-auto space-y-8 pb-20">
       <header className="flex flex-col md:flex-row justify-between items-end gap-4">
-        <h1 className="text-4xl font-black text-slate-900 uppercase italic">Application History</h1>
+        <div>
+          <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Application History</h1>
+          <p className="text-slate-500 text-sm font-medium">Your current applications.</p>
+        </div>
         <div className="flex bg-slate-100 p-1.5 rounded-2xl gap-1 border border-slate-200">
           {['ALL', 'PENDING', 'APPROVED', 'REJECTED'].map(s => (
             <button key={s} onClick={() => setFilter(s)} className={`px-4 py-2 rounded-xl text-[10px] font-black tracking-widest transition-all ${filter === s ? 'bg-white text-[#1f5f89] shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}>{s}</button>
@@ -93,18 +104,18 @@ function MyProposalsList() {
 
       <div className="grid gap-4">
         {proposals.map(p => (
-          <div key={p.proposalID} className="bg-white border-2 border-slate-100 p-8 rounded-[32px] shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6 group">
+          <div key={p.proposalID} className="ems-card p-8 flex flex-col md:flex-row md:items-center justify-between gap-6 group">
             <div className="space-y-2 flex-1">
                <div className="flex items-center gap-3">
-                  <h3 className="text-2xl font-black text-slate-900">{p.title}</h3>
-                  <span className={`px-3 py-1 rounded-full text-[10px] font-black border uppercase ${p.status === 'REJECTED' ? 'bg-red-50 text-red-700 border-red-100' : 'bg-blue-50 text-blue-700'}`}>{p.status}</span>
+                  <h3 className="text-xl font-bold text-slate-900">{p.title}</h3>
+                  <span className={`px-3 py-1 rounded-full text-[10px] font-black border uppercase ${getStatusStyle(p.status)}`}>{p.status}</span>
                </div>
                <div className="flex gap-4 text-xs font-bold text-slate-400 uppercase">
                  <span className="flex items-center gap-1">
                    <Clock size={14}/> {formatDate(p.proposedDate)}
                  </span>
                </div>
-               {p.rejectionReason && <div className="mt-4 p-4 bg-red-50 rounded-2xl border border-red-100 text-red-600 text-xs font-bold italic flex items-center gap-2"><Info size={14}/> Admin Feedback: "{p.rejectionReason}"</div>}
+               {p.rejectionReason && <div className="mt-4 p-4 bg-red-50 rounded-2xl border border-red-100 text-red-600 text-xs font-semibold flex items-center gap-2"><Info size={14}/> Admin Feedback: {p.rejectionReason}</div>}
             </div>
             {p.status === 'REJECTED' && (
               <button onClick={() => { 
@@ -123,7 +134,7 @@ function MyProposalsList() {
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white w-full max-w-3xl rounded-[40px] shadow-2xl overflow-hidden animate-in zoom-in duration-200">
             <div className="bg-[#1f5f89] p-8 text-white flex justify-between items-center">
-              <h2 className="text-2xl font-black uppercase tracking-tight italic">Revise Application</h2>
+              <h2 className="text-2xl font-black uppercase tracking-tight">Revise Application</h2>
               <button onClick={() => { setEditingProposal(null); setFileList([]); }} className="hover:bg-white/20 p-2 rounded-full"><X size={24} /></button>
             </div>
             

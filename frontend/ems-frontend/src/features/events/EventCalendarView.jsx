@@ -37,10 +37,10 @@ function EventCalendarView() {
 
   return (
     <div className="max-w-7xl mx-auto space-y-6">
-      <header className="flex justify-between items-center">
+      <header className="flex justify-between items-end mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900 uppercase italic">University Calendar</h1>
-          <p className="text-slate-500 font-medium">Public Event Schedule • {format(viewDate, 'MMMM yyyy')}</p>
+          <h1 className="text-3xl font-bold text-slate-900 tracking-tight">University Calendar</h1>
+          <p className="text-slate-500 text-sm font-medium">Public schedule of all approved extracurricular activities.</p>
         </div>
         <div className="flex bg-white border border-slate-200 rounded-xl p-1 gap-2 shadow-sm">
           <button onClick={() => setViewDate(subMonths(viewDate, 1))} className="p-2 hover:bg-slate-50 rounded-lg"><ChevronLeft size={20} /></button>
