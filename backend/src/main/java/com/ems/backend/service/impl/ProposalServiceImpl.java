@@ -27,8 +27,11 @@ public class ProposalServiceImpl implements ProposalService {
     private final EventRepository eventRepository;
 
     @Override
-    public List<Proposal> getPendingProposals() {
-        return proposalRepository.findByStatus(ApprovalStatus.PENDING);
+    public List<ProposalDTO> getPendingProposals() {
+        List<Proposal> proposals = proposalRepository.findByStatus(ApprovalStatus.PENDING);
+        return proposals.stream()
+                .map(this::convertToDTO)
+                .toList();
     }
 
     @Override

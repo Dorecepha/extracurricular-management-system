@@ -7,7 +7,7 @@ import java.util.List;
 
 public interface ProposalService {
 
-    List<Proposal> getPendingProposals();
+    List<ProposalDTO> getPendingProposals();
 
     void approveProposal(Long proposalID);
 

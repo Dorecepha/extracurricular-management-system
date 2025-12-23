@@ -1,6 +1,6 @@
 package com.ems.backend.controller;
 
-import com.ems.backend.entity.Proposal;
+import com.ems.backend.dto.ProposalDTO;
 import com.ems.backend.service.ProposalService;
 import com.ems.backend.wrappers.Response;
 import lombok.RequiredArgsConstructor;
@@ -23,11 +23,11 @@ public class AdminController {
      * Fetch all pending proposals for review
      */
     @GetMapping("/proposals")
-    public ResponseEntity<Response<List<Proposal>>> getPendingProposals() {
-        List<Proposal> proposals = proposalService.getPendingProposals();
+    public ResponseEntity<Response<List<ProposalDTO>>> getPendingProposals() {
+        List<ProposalDTO> proposals = proposalService.getPendingProposals();
         return ResponseEntity.ok(new Response<>(
-            200, 
-            "Pending proposals retrieved successfully", 
+            200,
+            "Pending proposals retrieved successfully",
             proposals
         ));
     }
