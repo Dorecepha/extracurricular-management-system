@@ -4,13 +4,19 @@ import com.ems.backend.dto.ProposalDTO;
 import com.ems.backend.security.CustomUserDetails;
 import com.ems.backend.service.ProposalService;
 import com.ems.backend.wrappers.Response;
-import jakarta.validation.Valid;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.validation.ConstraintViolationException;
+import jakarta.validation.Validator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/proposals")
@@ -18,15 +24,43 @@ import org.springframework.web.bind.annotation.*;
 public class ProposalController {
 
     private final ProposalService proposalService;
+    private final Validator validator;
 
-    @PostMapping
+    @GetMapping
     @PreAuthorize("hasRole('ORGANIZER')")
-    public ResponseEntity<Response<ProposalDTO>> createProposal(
-            @Valid @RequestBody ProposalDTO proposalDTO,
+    public ResponseEntity<Response<List<ProposalDTO>>> getMyProposals(
             @AuthenticationPrincipal CustomUserDetails userDetails) {
 
         Long organizerID = userDetails.getUser().getUserID();
-        ProposalDTO createdProposal = proposalService.createProposal(proposalDTO, organizerID);
+        List<ProposalDTO> proposals = proposalService.getProposalsByOrganizer(organizerID);
+
+        Response<List<ProposalDTO>> response = Response.<List<ProposalDTO>>builder()
+                .statusCode(HttpStatus.OK.value())
+                .message("Proposals fetched successfully")
+                .data(proposals)
+                .build();
+
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasRole('ORGANIZER')")
+    public ResponseEntity<Response<ProposalDTO>> createProposal(
+            @RequestPart("proposal") String proposalJson,
+            @RequestPart(value = "files", required = false) MultipartFile[] files,
+            @AuthenticationPrincipal CustomUserDetails userDetails) throws Exception {
+
+        ProposalDTO proposalDTO = new ObjectMapper()
+                .findAndRegisterModules()
+                .readValue(proposalJson, ProposalDTO.class);
+
+        var violations = validator.validate(proposalDTO);
+        if (!violations.isEmpty()) {
+            throw new ConstraintViolationException(violations);
+        }
+
+        Long organizerID = userDetails.getUser().getUserID();
+        ProposalDTO createdProposal = proposalService.createProposal(proposalDTO, files, organizerID);
 
         Response<ProposalDTO> response = Response.<ProposalDTO>builder()
                 .statusCode(HttpStatus.CREATED.value())
@@ -35,5 +69,22 @@ public class ProposalController {
                 .build();
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @PutMapping("/{proposalID}/resubmit")
+    @PreAuthorize("hasRole('ORGANIZER')")
+    public ResponseEntity<Response<ProposalDTO>> resubmit(
+            @PathVariable Long proposalID,
+            @RequestBody ProposalDTO dto) {
+
+        ProposalDTO updated = proposalService.updateAndResubmit(proposalID, dto);
+
+        Response<ProposalDTO> response = Response.<ProposalDTO>builder()
+                .statusCode(HttpStatus.OK.value())
+                .message("Proposal resubmitted successfully")
+                .data(updated)
+                .build();
+
+        return ResponseEntity.ok(response);
     }
 }

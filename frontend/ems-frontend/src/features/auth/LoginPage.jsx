@@ -3,7 +3,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { z } from 'zod';
-import api from '../../lib/axios';
+import { authApi } from './api';
 
 const loginSchema = z.object({
   email: z.string().email('Enter a valid email address'),
@@ -28,19 +28,21 @@ function LoginPage() {
   const onSubmit = async (values) => {
     setServerError('');
     try {
-      const response = await api.post('/auth/login', values);
-      
-      // Backend Wrapper: { data: { token: "...", role: "..." } }
-      const { token, role } = response.data.data || {};
-
+      const payload = await authApi.login(values);
+      const { token, role, user, id, userID } = payload || {};
       if (!token) {
         setServerError('Login succeeded but no token was returned.');
         return;
       }
 
+      localStorage.clear();
+      const normalizedUser = user
+        ? { ...user, userID: user.userID || user.id }
+        : { userID: userID || id, role };
+
       localStorage.setItem('token', token);
-      // Default to USER if role missing (or handle based on your backend)
-      localStorage.setItem('userRole', role || 'USER'); 
+      localStorage.setItem('userRole', role || normalizedUser?.role || 'USER'); 
+      localStorage.setItem('user', JSON.stringify(normalizedUser));
       
       navigate(from, { replace: true });
     } catch (error) {
@@ -53,7 +55,7 @@ function LoginPage() {
       <div className="w-full max-w-md overflow-hidden rounded-2xl bg-white shadow-xl">
         <div className="bg-[#1f5f89] p-8 text-center">
           <h1 className="text-3xl font-bold text-white">Welcome Back</h1>
-          <p className="mt-2 text-blue-100">Event Management System</p>
+          <p className="mt-2 text-blue-100">Extracurricular Management System</p>
         </div>
 
         <div className="p-8">

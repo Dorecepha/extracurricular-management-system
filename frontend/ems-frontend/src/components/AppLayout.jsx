@@ -1,30 +1,55 @@
-import React from 'react';
+﻿import React from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Calendar, LogOut, User } from 'lucide-react'; // Example icons
+import { LayoutDashboard, Calendar, LogOut, ClipboardList, Edit3, Inbox } from 'lucide-react';
+import { safeParseUser, safeGetItem } from '../lib/safeParse';
 
 function AppLayout() {
   const navigate = useNavigate();
-  // Simplified auth check for layout purposes
-  const userRole = localStorage.getItem('userRole');
+  const user = safeParseUser();
+  const userRole = safeGetItem('userRole') || user?.role;
+  const displayName =
+    user?.organizationName ||
+    [user?.firstName, user?.lastName].filter(Boolean).join(' ') ||
+    user?.email ||
+    'Signed-in user';
 
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('userRole');
+    localStorage.removeItem('user');
     navigate('/login');
   };
 
-  const navItems = [
+  const baseNav = [
     { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { to: '/events', label: 'Events', icon: Calendar },
   ];
 
+  const organizerNav = [
+    { to: '/proposals/submit', label: 'Apply to Host Event', icon: Edit3 },
+    { to: '/proposals/my', label: 'My Proposals', icon: ClipboardList },
+  ];
+
+  const adminNav = [
+    { to: '/admin/proposals', label: 'Review Queue', icon: Inbox },
+  ];
+
+  const navItems = [
+    ...baseNav,
+    ...(userRole === 'ORGANIZER' ? organizerNav : []),
+    ...(userRole === 'ADMIN' ? adminNav : []),
+  ];
+
   return (
     <div className="flex min-h-screen bg-slate-100">
-      {/* Sidebar */}
       <aside className="hidden w-64 flex-shrink-0 bg-[#1f5f89] text-white lg:block">
         <div className="flex h-full flex-col">
-          <div className="flex items-center justify-center py-8">
-             <h2 className="text-2xl font-bold tracking-wider">EMS</h2>
+          <div className="flex items-center justify-center py-8 flex-col gap-2">
+             <h2 className="text-3xl font-bold tracking-wider">EMS</h2>
+             <div className="text-center text-blue-100 text-xs font-semibold leading-tight">
+               <div className="text-xl opacity-80">{displayName}</div>
+               <div className="uppercase tracking-wide text-[15px] opacity-70">{userRole || 'USER'}</div>
+             </div>
           </div>
           
           <nav className="flex-1 space-y-2 px-4">
@@ -56,7 +81,6 @@ function AppLayout() {
         </div>
       </aside>
 
-      {/* Main Content */}
       <main className="flex-1 overflow-auto p-4 sm:p-8">
         <div className="mx-auto max-w-7xl">
           <Outlet />

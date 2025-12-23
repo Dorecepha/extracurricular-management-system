@@ -1,8 +1,22 @@
 package com.ems.backend.service;
 
 import com.ems.backend.dto.ProposalDTO;
+import org.springframework.web.multipart.MultipartFile;
+import java.util.List;
 
 public interface ProposalService {
 
-    ProposalDTO createProposal(ProposalDTO proposalDTO, Long organizerID);
+    List<ProposalDTO> getPendingProposals();
+
+    ProposalDTO getProposalById(Long proposalID);
+
+    List<ProposalDTO> getProposalsByOrganizer(Long organizerID);
+
+    void approveProposal(Long proposalID);
+
+    void rejectProposal(Long proposalID, String reason);
+
+    ProposalDTO createProposal(ProposalDTO proposalDTO, MultipartFile[] files, Long organizerID);
+
+    ProposalDTO updateAndResubmit(Long proposalID, ProposalDTO updatedDTO);
 }

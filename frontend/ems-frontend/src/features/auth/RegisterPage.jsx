@@ -59,7 +59,7 @@ function RegisterPage() {
       <div className="w-full max-w-md overflow-hidden rounded-2xl bg-white shadow-xl">
         <div className="bg-[#1f5f89] p-8 text-center text-white">
           <h1 className="text-3xl font-bold">Create Account</h1>
-          <p className="mt-2 text-blue-100">Event Management System</p>
+          <p className="mt-2 text-blue-100">Extracurricular Management System</p>
         </div>
 
         <div className="p-8">
