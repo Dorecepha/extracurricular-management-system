@@ -1,9 +1,12 @@
 package com.ems.backend.service.impl;
 
 import com.ems.backend.dto.ProposalDTO;
+import com.ems.backend.entity.Event;
 import com.ems.backend.entity.EventOrganizer;
 import com.ems.backend.entity.Proposal;
 import com.ems.backend.enums.ApprovalStatus;
+import com.ems.backend.enums.EventStatus;
+import com.ems.backend.repository.EventRepository;
 import com.ems.backend.repository.ProposalRepository;
 import com.ems.backend.repository.UserRepository;
 import com.ems.backend.service.ProposalService;
@@ -13,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -20,6 +24,48 @@ public class ProposalServiceImpl implements ProposalService {
 
     private final ProposalRepository proposalRepository;
     private final UserRepository userRepository;
+    private final EventRepository eventRepository;
+
+    @Override
+    public List<Proposal> getPendingProposals() {
+        return proposalRepository.findByStatus(ApprovalStatus.PENDING);
+    }
+
+    @Override
+    @Transactional
+    public void approveProposal(Long proposalID) {
+        Proposal proposal = proposalRepository.findById(proposalID)
+                .orElseThrow(() -> new RuntimeException("Proposal not found with ID: " + proposalID));
+
+        proposal.setStatus(ApprovalStatus.APPROVED);
+        proposalRepository.save(proposal);
+
+        Event event = new Event();
+        event.setTitle(proposal.getTitle());
+        event.setDescription(proposal.getDescription());
+        event.setVenue(proposal.getVenue());
+        event.setEventDate(proposal.getProposedDate());
+        event.setStartTime(proposal.getStartTime());
+        event.setEndTime(proposal.getEndTime());
+        event.setCapacity(proposal.getCapacity());
+        event.setOrganizationType(proposal.getOrganizationType());
+        event.setOrganizer(proposal.getOrganizer());
+        event.setStatus(EventStatus.UPCOMING);
+        event.setApprovalStatus(ApprovalStatus.APPROVED);
+
+        eventRepository.save(event);
+    }
+
+    @Override
+    @Transactional
+    public void rejectProposal(Long proposalID, String reason) {
+        Proposal proposal = proposalRepository.findById(proposalID)
+                .orElseThrow(() -> new RuntimeException("Proposal not found with ID: " + proposalID));
+
+        proposal.setStatus(ApprovalStatus.REJECTED);
+        proposal.setRejectionReason(reason);
+        proposalRepository.save(proposal);
+    }
 
     @Override
     @Transactional

@@ -25,7 +25,7 @@ public class ProposalController {
             @Valid @RequestBody ProposalDTO proposalDTO,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
 
-        Long organizerID = userDetails.getUser().getUserID();
+        Long organizerID = userDetails.getUserID();
         ProposalDTO createdProposal = proposalService.createProposal(proposalDTO, organizerID);
 
         Response<ProposalDTO> response = Response.<ProposalDTO>builder()

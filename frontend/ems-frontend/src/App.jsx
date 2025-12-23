@@ -7,6 +7,8 @@ import AppLayout from './components/AppLayout';
 import ProtectedRoute from './components/ProtectedRoute';
 import EventList from './features/events/EventList';
 import CreateProposalForm from './features/events/CreateProposalForm';
+import ProposalReviewList from './features/admin/ProposalReviewList';
+import ProposalDetails from './features/admin/ProposalDetails';
 
 // Create the client outside the component to prevent re-renders
 const queryClient = new QueryClient();
@@ -29,6 +31,10 @@ function App() {
             <Route path="/dashboard" element={<div className="p-4 text-2xl">Dashboard Placeholder</div>} />
             <Route path="/events" element={<EventList />} />
             <Route path="/propose" element={<CreateProposalForm />} />
+            <Route path="/admin" element={<ProtectedRoute role="ADMIN" />}>
+            <Route path="proposals" element={<ProposalReviewList />} />
+            <Route path="proposals/:proposalID" element={<ProposalDetails />} />
+      </Route>
           </Route>
 
           {/* Fallback */}

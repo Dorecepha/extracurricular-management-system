@@ -29,3 +29,5 @@ Thumbs.db
 .env.local
 .env.*.local
 *.class
+*.class
+*.class
