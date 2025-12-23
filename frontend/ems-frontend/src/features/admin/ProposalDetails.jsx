@@ -78,8 +78,11 @@ function ProposalDetails() {
 
   return (
     <div className="max-w-5xl mx-auto space-y-8 pb-20">
-      <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-slate-400 hover:text-[#1f5f89] transition-colors font-medium text-sm">
-        <ArrowLeft size={18} /> Back to Review Queue
+      <button 
+        onClick={() => navigate('/admin/proposals')} 
+        className="flex items-center gap-2 text-slate-400 hover:text-[#1f5f89] transition-all font-bold uppercase text-xs tracking-widest mb-6"
+      >
+        <ArrowLeft size={16} /> Back to Review Inbox
       </button>
 
       <div className="bg-white rounded-[40px] shadow-sm border border-slate-200 overflow-hidden">

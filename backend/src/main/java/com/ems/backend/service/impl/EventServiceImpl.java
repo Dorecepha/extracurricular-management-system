@@ -3,6 +3,7 @@ package com.ems.backend.service.impl;
 import com.ems.backend.dto.EventDTO;
 import com.ems.backend.entity.Event;
 import com.ems.backend.enums.ApprovalStatus;
+import com.ems.backend.enums.EventStatus;
 import com.ems.backend.repository.EventRepository;
 import com.ems.backend.service.EventService;
 import lombok.RequiredArgsConstructor;
@@ -10,6 +11,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -19,9 +22,32 @@ public class EventServiceImpl implements EventService {
 
     @Override
     @Transactional(readOnly = true)
-    public Page<EventDTO> getAllApprovedEvents(Pageable pageable) {
-        Page<Event> events = eventRepository.findAll(pageable);
+    public Page<EventDTO> getAllApprovedEvents(Pageable pageable, String search) {
+        Page<Event> events;
+        if (search != null && !search.isBlank()) {
+            events = eventRepository.findByApprovalStatusAndStatusNotAndTitleContainingIgnoreCase(
+                    ApprovalStatus.APPROVED,
+                    EventStatus.CANCELLED,
+                    search.trim(),
+                    pageable
+            );
+        } else {
+            events = eventRepository.findByApprovalStatusAndStatusNot(
+                    ApprovalStatus.APPROVED,
+                    EventStatus.CANCELLED,
+                    pageable
+            );
+        }
         return events.map(this::convertToDTO);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<EventDTO> getEventsByOrganizer(Long organizerID) {
+        return eventRepository.findByOrganizer_UserID(organizerID).stream()
+                .filter(event -> event.getStatus() != EventStatus.CANCELLED && event.getStatus() != EventStatus.COMPLETED)
+                .map(this::convertToDTO)
+                .toList();
     }
 
     @Override

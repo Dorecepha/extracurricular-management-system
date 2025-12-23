@@ -1,6 +1,10 @@
 ﻿import api from '../../lib/axios';
 
 export const adminApi = {
+  getReviewQueue: async () => {
+    const response = await api.get('/admin/queue');
+    return response.data.data;
+  },
   getPendingProposals: async () => {
     const response = await api.get('/admin/proposals');
     return response.data.data;

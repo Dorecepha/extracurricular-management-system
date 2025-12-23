@@ -4,8 +4,20 @@ export const eventApi = {
   /**
    * Corrected for: Response<Page<EventDTO>> 
    */
-  getEvents: async (page = 0) => {
-    const response = await api.get(`/events?page=${page}&size=9`);
+  getEvents: async (page = 0, search = '') => {
+    const params = new URLSearchParams({ page, size: 9 });
+    if (search) params.append('search', search);
+    const response = await api.get(`/events?${params.toString()}`);
+    return response.data.data;
+  },
+
+  getEventById: async (eventID) => {
+    const response = await api.get(`/events/${eventID}`);
+    return response.data.data;
+  },
+
+  getManagedEvents: async () => {
+    const response = await api.get('/events/managed');
     return response.data.data;
   },
 

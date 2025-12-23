@@ -16,6 +16,7 @@ public interface RegistrationRepository extends JpaRepository<Registration, Long
     boolean existsByStudent_UserIDAndEvent_EventID(Long studentId, Long eventId);
     List<Registration> findByStudent_UserID(Long studentId);
     List<Registration> findByEvent_EventIDAndStatus(Long eventId, RegistrationStatus status);
+    List<Registration> findByEvent_EventID(Long eventId);
     @Query("SELECT CASE WHEN COUNT(r) > 0 THEN true ELSE false END FROM Registration r " +
            "WHERE r.student.userID = :studentId " +
            "AND r.status = 'CONFIRMED' " +

@@ -1,6 +1,6 @@
-﻿import React from 'react';
+import React from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Calendar, LogOut, ClipboardList, Edit3, Inbox, Bookmark } from 'lucide-react';
+import { Calendar, LogOut, ClipboardList, FilePlus, Settings, Bookmark, ShieldCheck } from 'lucide-react';
 import { safeParseUser, safeGetItem } from '../lib/safeParse';
 
 function AppLayout() {
@@ -20,30 +20,22 @@ function AppLayout() {
     navigate('/login');
   };
 
-  const baseNav = [
-    { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { to: '/events', label: 'Events', icon: Calendar },
-  ];
-
-  const studentNav = [
-    { to: '/my-events', label: 'My Events', icon: Bookmark },
-  ];
-
-  const organizerNav = [
-    { to: '/proposals/submit', label: 'Apply to Host Event', icon: Edit3 },
-    { to: '/proposals/my', label: 'My Proposals', icon: ClipboardList },
-  ];
-
-  const adminNav = [
-    { to: '/admin/proposals', label: 'Review Queue', icon: Inbox },
-  ];
-
   const navItems = [
-    ...baseNav,
-    ...(userRole === 'STUDENT' ? studentNav : []),
-    ...(userRole === 'ORGANIZER' ? organizerNav : []),
-    ...(userRole === 'ADMIN' ? adminNav : []),
+    { to: '/events', label: 'Campus Events', icon: Calendar, roles: ['STUDENT', 'ORGANIZER', 'ADMIN'] },
+    
+    // ORGANIZER
+    { to: '/proposals/submit', label: 'Apply to Host', icon: FilePlus, roles: ['ORGANIZER'] },
+    { to: '/managed-events', label: 'Managed Events', icon: Settings, roles: ['ORGANIZER'] },
+    { to: '/proposals/my', label: 'My Proposals', icon: ClipboardList, roles: ['ORGANIZER'] },
+    
+    // STUDENT
+    { to: '/my-events', label: 'My Registrations', icon: Bookmark, roles: ['STUDENT'] },
+    
+    // ADMIN (Simplified)
+    { to: '/admin/proposals', label: 'Review Inbox', icon: ShieldCheck, roles: ['ADMIN'] },
   ];
+
+  const filteredNavItems = navItems.filter((item) => item.roles?.includes(userRole));
 
   return (
     <div className="flex min-h-screen bg-slate-100">
@@ -58,7 +50,7 @@ function AppLayout() {
           </div>
           
           <nav className="flex-1 space-y-2 px-4">
-            {navItems.map((item) => (
+            {filteredNavItems.map((item) => (
               <NavLink
                 key={item.to}
                 to={item.to}

@@ -5,6 +5,7 @@ import com.ems.backend.entity.Event;
 import com.ems.backend.entity.Registration;
 import com.ems.backend.entity.Student;
 import com.ems.backend.entity.User;
+import com.ems.backend.enums.EventStatus;
 import com.ems.backend.enums.RegistrationStatus;
 import com.ems.backend.exception.NotFoundException;
 import com.ems.backend.repository.EventRepository;
@@ -32,6 +33,10 @@ public class RegistrationServiceImpl implements RegistrationService {
     public void registerStudentForEvent(Long eventID, Long studentID) {
         Event event = eventRepository.findById(eventID)
                 .orElseThrow(() -> new NotFoundException("Event not found with ID: " + eventID));
+
+        if (event.getStatus() == EventStatus.CANCELLED || event.getStatus() == EventStatus.COMPLETED) {
+            throw new IllegalStateException("Registrations are closed for this event.");
+        }
 
         User user = userRepository.findById(studentID)
                 .orElseThrow(() -> new NotFoundException("Student not found with ID: " + studentID));
@@ -111,5 +116,28 @@ public class RegistrationServiceImpl implements RegistrationService {
         eventRepository.save(event);
 
         registrationRepository.delete(registration);
+    }
+
+    @Override
+    @Transactional
+    public void cancelRegistrationsForEvent(Event event, String reason) {
+        if (event == null) {
+            throw new IllegalArgumentException("Event cannot be null when cancelling registrations.");
+        }
+
+        List<Registration> registrations = registrationRepository.findByEvent_EventID(event.getEventID());
+        String cancellationReason = (reason == null || reason.isBlank())
+                ? "Event cancelled"
+                : reason;
+        LocalDateTime now = LocalDateTime.now();
+
+        registrations.forEach(reg -> {
+            reg.setStatus(RegistrationStatus.CANCELLED);
+            reg.setCancelledAt(now);
+            reg.setCancellationReason(cancellationReason);
+        });
+        registrationRepository.saveAll(registrations);
+
+        event.setCurrentRegistrations(0);
     }
 }
