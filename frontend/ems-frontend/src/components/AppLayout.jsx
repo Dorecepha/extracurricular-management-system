@@ -1,10 +1,9 @@
-import React from 'react';
+﻿import React from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Calendar, LogOut, User } from 'lucide-react'; // Example icons
+import { LayoutDashboard, Calendar, LogOut, ClipboardList, Edit3, Inbox } from 'lucide-react';
 
 function AppLayout() {
   const navigate = useNavigate();
-  // Simplified auth check for layout purposes
   const userRole = localStorage.getItem('userRole');
 
   const handleLogout = () => {
@@ -13,14 +12,28 @@ function AppLayout() {
     navigate('/login');
   };
 
-  const navItems = [
+  const baseNav = [
     { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { to: '/events', label: 'Events', icon: Calendar },
   ];
 
+  const organizerNav = [
+    { to: '/proposals/submit', label: 'Apply to Host', icon: Edit3 },
+    { to: '/proposals/my', label: 'My Proposals', icon: ClipboardList },
+  ];
+
+  const adminNav = [
+    { to: '/admin/proposals', label: 'Review Queue', icon: Inbox },
+  ];
+
+  const navItems = [
+    ...baseNav,
+    ...(userRole === 'ORGANIZER' ? organizerNav : []),
+    ...(userRole === 'ADMIN' ? adminNav : []),
+  ];
+
   return (
     <div className="flex min-h-screen bg-slate-100">
-      {/* Sidebar */}
       <aside className="hidden w-64 flex-shrink-0 bg-[#1f5f89] text-white lg:block">
         <div className="flex h-full flex-col">
           <div className="flex items-center justify-center py-8">
@@ -56,7 +69,6 @@ function AppLayout() {
         </div>
       </aside>
 
-      {/* Main Content */}
       <main className="flex-1 overflow-auto p-4 sm:p-8">
         <div className="mx-auto max-w-7xl">
           <Outlet />

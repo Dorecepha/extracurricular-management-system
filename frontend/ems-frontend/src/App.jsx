@@ -7,8 +7,10 @@ import AppLayout from './components/AppLayout';
 import ProtectedRoute from './components/ProtectedRoute';
 import EventList from './features/events/EventList';
 import CreateProposalForm from './features/events/CreateProposalForm';
+import MyProposalsList from './features/events/MyProposalsList';
+import ProposalReviewList from './features/admin/ProposalReviewList';
+import ProposalDetails from './features/admin/ProposalDetails';
 
-// Create the client outside the component to prevent re-renders
 const queryClient = new QueryClient();
 
 function App() {
@@ -16,11 +18,9 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
         <Routes>
-          {/* Public Routes */}
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
           
-          {/* Protected Routes */}
           <Route element={
             <ProtectedRoute>
               <AppLayout />
@@ -28,10 +28,14 @@ function App() {
           }>
             <Route path="/dashboard" element={<div className="p-4 text-2xl">Dashboard Placeholder</div>} />
             <Route path="/events" element={<EventList />} />
+            <Route path="/proposals/submit" element={<CreateProposalForm />} />
+            <Route path="/proposals/my" element={<MyProposalsList />} />
             <Route path="/propose" element={<CreateProposalForm />} />
+
+            <Route path="/admin/proposals" element={<ProposalReviewList />} />
+            <Route path="/admin/proposals/:proposalID" element={<ProposalDetails />} />
           </Route>
 
-          {/* Fallback */}
           <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
       </BrowserRouter>
