@@ -17,6 +17,17 @@ export const eventApi = {
     // payload must match ProposalRequest DTO exactly
     const response = await api.post('/proposals', payload);
     return response.data;
+  },
+
+  // Add inside eventApi object
+  getMyProposals: async () => {
+    const response = await api.get('/proposals'); // DNA: Current User context
+    return response.data.data;
+  },
+
+  resubmitProposal: async (proposalID, data) => {
+    const response = await api.put(`/proposals/${proposalID}/resubmit`, data);
+    return response.data;
   }
 };
 

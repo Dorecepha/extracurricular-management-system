@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Calendar, LogOut, FileText, CheckSquare } from 'lucide-react';
+import { LayoutDashboard, Calendar, LogOut, FileText, CheckSquare, ClipboardList } from 'lucide-react';
 import { safeParseUser, safeGetItem, clearAuthData } from '../lib/safeParse';
 
 function AppLayout() {
@@ -39,6 +39,8 @@ function AppLayout() {
   const navItems = [
     { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, roles: ['STUDENT', 'ORGANIZER', 'ADMIN'] },
     { to: '/events', label: 'Events', icon: Calendar, roles: ['STUDENT', 'ORGANIZER', 'ADMIN'] },
+    // ORGANIZER can review their submissions
+    { to: '/proposals', label: 'My Proposals', icon: ClipboardList, roles: ['ORGANIZER'] },
     // ORGANIZER can submit proposals
     { to: '/proposals/submit', label: 'Submit Proposal', icon: FileText, roles: ['ORGANIZER'] },
     // ADMIN can review proposals

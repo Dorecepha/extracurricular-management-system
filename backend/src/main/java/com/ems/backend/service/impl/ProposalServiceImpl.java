@@ -35,6 +35,21 @@ public class ProposalServiceImpl implements ProposalService {
     }
 
     @Override
+    public ProposalDTO getProposalById(Long proposalID) {
+        Proposal proposal = proposalRepository.findById(proposalID)
+                .orElseThrow(() -> new RuntimeException("Proposal not found with ID: " + proposalID));
+        return convertToDTO(proposal);
+    }
+
+    @Override
+    public List<ProposalDTO> getProposalsByOrganizer(Long organizerID) {
+        List<Proposal> proposals = proposalRepository.findByOrganizer_UserID(organizerID);
+        return proposals.stream()
+                .map(this::convertToDTO)
+                .toList();
+    }
+
+    @Override
     @Transactional
     public void approveProposal(Long proposalID) {
         Proposal proposal = proposalRepository.findById(proposalID)
@@ -113,7 +128,35 @@ public class ProposalServiceImpl implements ProposalService {
         return convertToDTO(savedProposal);
     }
 
+    @Override
+    @Transactional
+    public ProposalDTO updateAndResubmit(Long proposalID, ProposalDTO dto) {
+        Proposal proposal = proposalRepository.findById(proposalID)
+                .orElseThrow(() -> new RuntimeException("Proposal not found"));
+
+        proposal.setTitle(dto.getTitle());
+        proposal.setDescription(dto.getDescription());
+        proposal.setProposedDate(dto.getProposedDate());
+        proposal.setStartTime(dto.getStartTime());
+        proposal.setEndTime(dto.getEndTime());
+        proposal.setVenue(dto.getVenue());
+        proposal.setCapacity(dto.getCapacity());
+        proposal.setOrganizationType(dto.getOrganizationType());
+        proposal.setAttachmentsJson(dto.getAttachmentsJson());
+
+        proposal.setStatus(ApprovalStatus.PENDING);
+        proposal.setRejectionReason(null);
+        proposal.setSubmittedAt(LocalDateTime.now());
+
+        return convertToDTO(proposalRepository.save(proposal));
+    }
+
     private ProposalDTO convertToDTO(Proposal proposal) {
+        String organizerName = proposal.getOrganizer().getOrganizationName();
+        if (organizerName == null || organizerName.isEmpty()) {
+            organizerName = proposal.getOrganizer().getFirstName() + " " + proposal.getOrganizer().getLastName();
+        }
+
         return ProposalDTO.builder()
                 .proposalID(proposal.getProposalID())
                 .title(proposal.getTitle())
@@ -131,7 +174,7 @@ public class ProposalServiceImpl implements ProposalService {
                 .reviewedByID(proposal.getReviewedBy() != null ? proposal.getReviewedBy().getUserID() : null)
                 .rejectionReason(proposal.getRejectionReason())
                 .organizerID(proposal.getOrganizer().getUserID())
-                .organizerName(proposal.getOrganizer().getOrganizationName())
+                .organizerName(organizerName)
                 .build();
     }
 }

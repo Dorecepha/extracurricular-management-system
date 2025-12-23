@@ -33,6 +33,19 @@ public class AdminController {
     }
 
     /**
+     * Fetch a single proposal by ID
+     */
+    @GetMapping("/proposals/{proposalID}")
+    public ResponseEntity<Response<ProposalDTO>> getProposalById(@PathVariable Long proposalID) {
+        ProposalDTO proposal = proposalService.getProposalById(proposalID);
+        return ResponseEntity.ok(new Response<>(
+            200,
+            "Proposal retrieved successfully",
+            proposal
+        ));
+    }
+
+    /**
      * Approve a proposal and convert to an Event
      */
     @PutMapping("/proposals/{proposalID}/approve")

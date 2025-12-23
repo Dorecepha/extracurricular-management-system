@@ -39,12 +39,11 @@ function ProposalReviewList() {
   console.log('DEBUG ProposalReviewList - proposals.length:', proposals.length);
 
   return (
-    <div className="max-w-5xl mx-auto space-y-8">
+    <div className="space-y-8">
       <header>
-        <h1 className="text-4xl font-black text-slate-900 tracking-tight uppercase italic">Review Queue</h1>
-        <p className="text-slate-500 font-bold italic">Pending event applications requiring approval.</p>
+        <h1 className="text-3xl font-black text-slate-900 tracking-tight">Review Queue</h1>
+        <p className="text-slate-500">Pending event applications requiring approval.</p>
       </header>
-
       <div className="grid grid-cols-1 gap-4">
         {proposals.length === 0 ? (
           <div className="bg-white border-2 border-dashed border-slate-200 rounded-[40px] py-32 text-center text-slate-400">

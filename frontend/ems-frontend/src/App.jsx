@@ -7,6 +7,7 @@ import AppLayout from './components/AppLayout';
 import ProtectedRoute from './components/ProtectedRoute';
 import EventList from './features/events/EventList';
 import CreateProposalForm from './features/events/CreateProposalForm';
+import MyProposalsList from './features/events/MyProposalsList';
 import ProposalReviewList from './features/admin/ProposalReviewList';
 import ProposalDetails from './features/admin/ProposalDetails';
 
@@ -32,6 +33,7 @@ function App() {
             <Route path="/events" element={<EventList />} />
 
             {/* ORGANIZER ROUTE - Path must match sidebar link exactly */}
+            <Route path="/proposals" element={<MyProposalsList />} />
             <Route path="/proposals/submit" element={<CreateProposalForm />} />
 
             {/* ADMIN ROUTES - Path must match sidebar link exactly */}
