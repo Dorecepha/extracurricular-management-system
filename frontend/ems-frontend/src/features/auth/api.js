@@ -7,7 +7,7 @@ export const authApi = {
    * AuthResponse: { token: string, email: string, role: string, id: Long }
    */
   login: async (credentials) => {
-    const response = await api.post('/api/auth/login', credentials);
+    const response = await api.post('/auth/login', credentials);
     // Unwrap the response wrapper to get the actual data
     return response.data.data;
   },
@@ -17,7 +17,7 @@ export const authApi = {
    * Backend returns: { statusCode: 201, message: "User Registered Successfully", data: AuthResponse }
    */
   register: async (userData) => {
-    const response = await api.post('/api/auth/register', userData);
+    const response = await api.post('/auth/register', userData);
     return response.data.data;
   },
 
@@ -25,7 +25,7 @@ export const authApi = {
    * Logout user (if backend endpoint exists)
    */
   logout: async () => {
-    const response = await api.post('/api/auth/logout');
+    const response = await api.post('/auth/logout');
     return response.data;
   }
 };
