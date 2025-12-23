@@ -18,5 +18,5 @@ public interface ProposalService {
 
     ProposalDTO createProposal(ProposalDTO proposalDTO, MultipartFile[] files, Long organizerID);
 
-    ProposalDTO updateAndResubmit(Long proposalID, ProposalDTO updatedDTO);
+    ProposalDTO updateAndResubmit(Long proposalID, ProposalDTO updatedDTO, MultipartFile[] files);
 }

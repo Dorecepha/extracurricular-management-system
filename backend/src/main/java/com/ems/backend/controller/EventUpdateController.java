@@ -20,9 +20,10 @@ import java.util.List;
 @RequiredArgsConstructor
 public class EventUpdateController {
 
-    public record RejectionRequest(String reason) {}
+    public record RejectionRequest(String rejectionReason) {}
 
     private final EventUpdateRequestService eventUpdateRequestService;
+    private final ObjectMapper mapper = new ObjectMapper().findAndRegisterModules();
 
     @PostMapping(value = "/event/{eventID}", consumes = {"multipart/form-data"})
     @PreAuthorize("hasRole('ORGANIZER')")
@@ -32,7 +33,7 @@ public class EventUpdateController {
             @RequestPart(value = "files", required = false) MultipartFile[] files,
             @AuthenticationPrincipal CustomUserDetails userDetails) throws Exception {
 
-        EventUpdateRequestDTO dto = new ObjectMapper().findAndRegisterModules().readValue(updateJson, EventUpdateRequestDTO.class);
+        EventUpdateRequestDTO dto = mapper.readValue(updateJson, EventUpdateRequestDTO.class);
         Long organizerID = userDetails.getUser().getUserID();
         EventUpdateRequestDTO created = eventUpdateRequestService.submitUpdateRequest(eventID, dto, files, organizerID);
 
@@ -63,14 +64,15 @@ public class EventUpdateController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Response<Void>> approveRequest(
             @PathVariable Long requestID,
+            @RequestParam(defaultValue = "false") boolean notify,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
 
         Long adminID = userDetails.getUser().getUserID();
-        eventUpdateRequestService.approveRequest(requestID, adminID);
+        eventUpdateRequestService.approveRequest(requestID, adminID, notify);
 
         Response<Void> response = Response.<Void>builder()
                 .statusCode(HttpStatus.OK.value())
-                .message("Event update request approved and applied")
+                .message("Event update request approved and applied" + (notify ? " and participants notified" : ""))
                 .data(null)
                 .build();
 
@@ -82,10 +84,11 @@ public class EventUpdateController {
     public ResponseEntity<Response<Void>> rejectRequest(
             @PathVariable Long requestID,
             @RequestBody RejectionRequest rejectionRequest,
+            @RequestParam(defaultValue = "false") boolean notify,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
 
         Long adminID = userDetails.getUser().getUserID();
-        eventUpdateRequestService.rejectRequest(requestID, rejectionRequest.reason(), adminID);
+        eventUpdateRequestService.rejectRequest(requestID, rejectionRequest.rejectionReason(), adminID, notify);
 
         Response<Void> response = Response.<Void>builder()
                 .statusCode(HttpStatus.OK.value())
@@ -94,5 +97,12 @@ public class EventUpdateController {
                 .build();
 
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/{requestID}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Response<EventUpdateRequestDTO>> getById(@PathVariable Long requestID) {
+        EventUpdateRequestDTO dto = eventUpdateRequestService.getById(requestID);
+        return ResponseEntity.ok(new Response<>(200, "Update request retrieved", dto));
     }
 }

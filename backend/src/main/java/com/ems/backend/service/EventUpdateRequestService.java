@@ -11,7 +11,9 @@ public interface EventUpdateRequestService {
 
     List<EventUpdateRequestDTO> getPendingRequests();
 
-    void approveRequest(Long requestID, Long adminID);
+    void approveRequest(Long requestID, Long adminID, boolean notify);
 
-    void rejectRequest(Long requestID, String reason, Long adminID);
+    void rejectRequest(Long requestID, String reason, Long adminID, boolean notify);
+
+    EventUpdateRequestDTO getById(Long requestID);
 }

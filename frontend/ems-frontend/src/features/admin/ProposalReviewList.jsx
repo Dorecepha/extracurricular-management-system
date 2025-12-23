@@ -41,7 +41,7 @@ function ProposalReviewList() {
           combinedQueue.map((item) => (
             <div 
               key={`${item.reviewType}-${item.id}`}
-              onClick={() => navigate(item.reviewType === 'NEW_PROPOSAL' ? `/admin/proposals/${item.id}` : '/admin/updates')}
+              onClick={() => navigate(item.reviewType === 'NEW_PROPOSAL' ? `/admin/proposals/${item.id}` : `/admin/updates/${item.id}`)}
               className="bg-white border border-slate-200 p-8 rounded-[32px] shadow-sm hover:shadow-xl cursor-pointer transition-all flex items-center justify-between group"
             >
               <div className="space-y-4">

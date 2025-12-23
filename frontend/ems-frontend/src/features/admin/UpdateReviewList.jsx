@@ -2,16 +2,18 @@ import React from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { updateApi } from '../events/updateApi';
 import { CheckCircle, XCircle, Loader2, ArrowRight } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 function UpdateReviewList() {
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const { data: requests, isLoading } = useQuery({
     queryKey: ['admin', 'updates'],
     queryFn: updateApi.getPendingUpdates
   });
 
   const approveMutation = useMutation({
-    mutationFn: (id) => updateApi.approveUpdate(id),
+    mutationFn: (id) => updateApi.approveUpdate(id, false),
     onSuccess: () => {
       alert("Changes applied to event.");
       queryClient.invalidateQueries(['admin', 'updates']);
@@ -37,7 +39,7 @@ function UpdateReviewList() {
                 </div>
                 <div className="flex gap-2">
                   <button onClick={() => approveMutation.mutate(req.requestID)} className="bg-green-600 text-white px-6 py-2 rounded-xl font-bold text-xs uppercase tracking-widest">Approve</button>
-                  <button className="bg-red-600 text-white px-6 py-2 rounded-xl font-bold text-xs uppercase tracking-widest">Reject</button>
+                  <button onClick={() => navigate(`/admin/updates/${req.requestID}`)} className="bg-white border px-6 py-2 rounded-xl font-bold text-xs uppercase tracking-widest text-slate-600">Review</button>
                 </div>
               </div>
 

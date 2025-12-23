@@ -13,6 +13,7 @@ import ProposalReviewList from './features/admin/ProposalReviewList';
 import ProposalDetails from './features/admin/ProposalDetails';
 import UpdateEventForm from './features/events/UpdateEventForm';
 import UpdateReviewList from './features/admin/UpdateReviewList';
+import UpdateReviewDetails from './features/admin/UpdateReviewDetails';
 import OrganizerEvents from './features/events/OrganizerEvents';
 
 const queryClient = new QueryClient();
@@ -41,6 +42,7 @@ function App() {
             <Route path="/admin/proposals" element={<ProposalReviewList />} />
             <Route path="/admin/proposals/:proposalID" element={<ProposalDetails />} />
             <Route path="/admin/updates" element={<UpdateReviewList />} />
+            <Route path="/admin/updates/:requestID" element={<UpdateReviewDetails />} />
           </Route>
 
           <Route path="*" element={<Navigate to="/login" replace />} />

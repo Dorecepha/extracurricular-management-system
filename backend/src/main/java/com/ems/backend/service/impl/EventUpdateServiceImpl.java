@@ -89,8 +89,16 @@ public class EventUpdateServiceImpl implements EventUpdateRequestService {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public EventUpdateRequestDTO getById(Long requestID) {
+        EventUpdateRequest request = requestRepository.findById(requestID)
+                .orElseThrow(() -> new NotFoundException("Update request not found with ID: " + requestID));
+        return convertToDTO(request);
+    }
+
+    @Override
     @Transactional
-    public void approveRequest(Long requestID, Long adminID) {
+    public void approveRequest(Long requestID, Long adminID, boolean notify) {
         EventUpdateRequest request = requestRepository.findById(requestID)
                 .orElseThrow(() -> new NotFoundException("Update request not found with ID: " + requestID));
 
@@ -148,7 +156,7 @@ public class EventUpdateServiceImpl implements EventUpdateRequestService {
 
     @Override
     @Transactional
-    public void rejectRequest(Long requestID, String reason, Long adminID) {
+    public void rejectRequest(Long requestID, String reason, Long adminID, boolean notify) {
         EventUpdateRequest request = requestRepository.findById(requestID)
                 .orElseThrow(() -> new NotFoundException("Update request not found with ID: " + requestID));
 

@@ -15,6 +15,7 @@ com\ems\backend\controller\EventUpdateController$RejectionRequest.class
 com\ems\backend\dto\LoginRequest.class
 com\ems\backend\entity\EventUpdateRequest.class
 com\ems\backend\service\impl\NotificationServiceImpl.class
+com\ems\backend\service\impl\ProposalServiceImpl$1.class
 com\ems\backend\security\CustomUserDetails.class
 com\ems\backend\dto\ProposalDTO.class
 com\ems\backend\entity\Registration$RegistrationBuilder.class
@@ -22,6 +23,7 @@ com\ems\backend\controller\AdminController.class
 com\ems\backend\dto\RegistrationDTO$RegistrationDTOBuilder.class
 com\ems\backend\security\JwtAuthenticationFilter.class
 com\ems\backend\service\impl\FileStorageServiceImpl.class
+com\ems\backend\service\impl\ProposalServiceImpl$2.class
 com\ems\backend\entity\Student$StudentBuilder.class
 com\ems\backend\security\CustomUserDetails$CustomUserDetailsBuilder.class
 com\ems\backend\dto\AuthResponse.class
