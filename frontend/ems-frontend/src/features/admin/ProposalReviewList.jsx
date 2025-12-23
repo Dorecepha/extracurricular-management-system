@@ -1,151 +1,90 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { adminApi } from './adminApi';
-
-// UI Components from Design System
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { 
-  Calendar, 
-  MapPin, 
-  Users, 
-  Clock, 
-  ChevronRight, 
-  Loader2, 
-  AlertCircle, 
-  CheckCircle,
-  FileText
-} from 'lucide-react';
+import { adminApi } from './adminApi'; // DNA: Use adminApi, not eventApi
+import { Clock, MapPin, ChevronRight, Loader2, AlertCircle, Inbox } from 'lucide-react';
 
 function ProposalReviewList() {
   const navigate = useNavigate();
-
-  // Preserved logic from your original file
-  const { data: proposals, isLoading, isError, error } = useQuery({
+  
+  const { data: rawData, isLoading, isError, error } = useQuery({
     queryKey: ['admin', 'proposals'],
     queryFn: adminApi.getPendingProposals
   });
 
-  // Professional Loading State (Matches Administrator Portal)
+  // DEBUG: Log the raw data received from React Query
+  console.log('DEBUG ProposalReviewList - rawData:', rawData);
+  console.log('DEBUG ProposalReviewList - isLoading:', isLoading);
+  console.log('DEBUG ProposalReviewList - isError:', isError);
+  console.log('DEBUG ProposalReviewList - error:', error);
+
   if (isLoading) return (
-    <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
-      <Loader2 className="animate-spin text-primary h-12 w-12" />
-      <p className="text-muted-foreground font-medium">Fetching review queue...</p>
+    <div className="flex justify-center p-20">
+      <Loader2 className="animate-spin text-[#1f5f89]" size={48} />
     </div>
   );
 
-  // Professional Error State
   if (isError) return (
-    <div className="container mx-auto p-6">
-      <Card className="border-destructive bg-destructive/5">
-        <CardHeader className="flex flex-row items-center gap-4">
-          <AlertCircle className="text-danger h-8 w-8" />
-          <div>
-            <CardTitle className="text-danger">
-              {error?.response?.status === 403 ? 'Access Denied' : 'System Error'}
-            </CardTitle>
-            <CardDescription>
-              {error?.response?.status === 403
-                ? 'Access Denied: Admin privileges required.'
-                : 'Failed to load proposals for review. Please check your admin permissions.'}
-            </CardDescription>
-          </div>
-        </CardHeader>
-      </Card>
+    <div className="bg-red-50 border-2 border-red-100 p-6 rounded-3xl text-red-600 font-bold flex items-center gap-3">
+      <AlertCircle /> Error: {error.message}
     </div>
   );
+
+  // DNA FIX: Handle Spring Page object or raw List
+  const proposals = Array.isArray(rawData) ? rawData : rawData?.content || [];
+
+  // DEBUG: Log the extracted proposals array
+  console.log('DEBUG ProposalReviewList - proposals array:', proposals);
+  console.log('DEBUG ProposalReviewList - proposals.length:', proposals.length);
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6 space-y-8">
-      {/* Design Truth: Administrator Portal Header */}
-      <div className="max-w-6xl mx-auto flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Review Event Proposals</h1>
-          <p className="text-muted-foreground font-medium">Review and approve university event requests.</p>
-        </div>
-        <Badge variant="outline" className="px-3 py-1 border-primary/20 text-primary bg-primary/10">
-          {proposals?.length || 0} Pending Requests
-        </Badge>
-      </div>
+    <div className="max-w-5xl mx-auto space-y-8">
+      <header>
+        <h1 className="text-4xl font-black text-slate-900 tracking-tight uppercase italic">Review Queue</h1>
+        <p className="text-slate-500 font-bold italic">Pending event applications requiring approval.</p>
+      </header>
 
-      <main className="max-w-6xl mx-auto">
-        <Card className="border-none shadow-none bg-transparent">
-          <CardContent className="p-0">
-            {proposals?.length === 0 ? (
-              // Empty State from ReviewProposals.tsx
-              <Card className="text-center py-20 rounded-3xl border-2 border-dashed border-slate-200 shadow-none">
-                <CardContent>
-                  <CheckCircle className="h-12 w-12 mx-auto mb-4 text-success opacity-50" />
-                  <p className="text-slate-900 font-bold text-lg">No pending proposals</p>
-                  <p className="text-muted-foreground text-sm">All proposals have been reviewed and cleared.</p>
-                </CardContent>
-              </Card>
-            ) : (
-              // Card Grid from Design Truth
-              <div className="grid gap-4 md:grid-cols-2">
-                {proposals?.map((proposal) => (
-                  <Card 
-                    key={proposal.proposalID}
-                    className="border-2 hover:border-primary transition-all group relative overflow-hidden bg-white"
-                  >
-                    <CardHeader className="pb-4">
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <Badge variant="secondary" className="mb-2 text-[10px] font-bold uppercase tracking-wider">
-                            {proposal.organizationType}
-                          </Badge>
-                          <CardTitle className="text-xl group-hover:text-primary transition-colors">
-                            {proposal.title}
-                          </CardTitle>
-                        </div>
-                        <div className="bg-slate-100 p-2 rounded-full text-slate-400 group-hover:bg-primary group-hover:text-white transition-all">
-                          <FileText size={18} />
-                        </div>
-                      </div>
-                      <CardDescription className="line-clamp-2">
-                        {proposal.description || "No description provided for this proposal."}
-                      </CardDescription>
-                    </CardHeader>
+      <div className="grid grid-cols-1 gap-4">
+        {proposals.length === 0 ? (
+          <div className="bg-white border-2 border-dashed border-slate-200 rounded-[40px] py-32 text-center text-slate-400">
+            <Inbox size={48} className="mx-auto mb-4 opacity-20" />
+            <p className="text-xl font-black uppercase tracking-widest">No pending proposals</p>
+            <p className="text-sm font-medium">All applications have been processed.</p>
+          </div>
+        ) : (
+          proposals.map((proposal) => (
+            <div 
+              key={proposal.proposalID}
+              onClick={() => navigate(`/admin/proposals/${proposal.proposalID}`)}
+              className="bg-white border border-slate-200 p-8 rounded-[32px] shadow-sm hover:shadow-xl hover:border-[#1f5f89]/30 cursor-pointer transition-all flex items-center justify-between group"
+            >
+              <div className="space-y-4">
+                <div className="flex items-center gap-3">
+                  <span className="bg-blue-50 text-[#1f5f89] text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-tighter">
+                    {proposal.organizationType}
+                  </span>
+                  <span className="text-[10px] font-black text-slate-300 uppercase tracking-[0.2em]">
+                    ID: {proposal.proposalID}
+                  </span>
+                </div>
+                
+                <div>
+                  <h3 className="text-2xl font-black text-slate-900 group-hover:text-[#1f5f89] transition-colors leading-tight">
+                    {proposal.title}
+                  </h3>
+                  <p className="text-slate-500 font-bold text-xs mt-1">Submitted by: {proposal.organizerName || "System Organizer"}</p>
+                </div>
 
-                    <CardContent className="space-y-4">
-                      <div className="grid grid-cols-2 gap-y-2 text-sm">
-                        <div className="flex items-center gap-2 text-muted-foreground">
-                          <Calendar size={14} className="text-primary" />
-                          <span>{proposal.proposedDate}</span>
-                        </div>
-                        <div className="flex items-center gap-2 text-muted-foreground">
-                          <Clock size={14} className="text-primary" />
-                          <span>{proposal.startTime || 'TBD'}</span>
-                        </div>
-                        <div className="flex items-center gap-2 text-muted-foreground">
-                          <MapPin size={14} className="text-primary" />
-                          <span className="truncate">{proposal.venue}</span>
-                        </div>
-                        <div className="flex items-center gap-2 text-muted-foreground">
-                          <Users size={14} className="text-primary" />
-                          <span>Cap: {proposal.capacity}</span>
-                        </div>
-                      </div>
-
-                      <div className="flex gap-2 pt-2 border-t">
-                        <Button 
-                          className="flex-1 bg-primary hover:bg-primary/90"
-                          onClick={() => navigate(`/admin/proposals/${proposal.proposalID}`)}
-                        >
-                          <ChevronRight className="h-4 w-4 mr-2" />
-                          Review Details
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+                <div className="flex gap-6 text-sm font-bold text-slate-500">
+                  <span className="flex items-center gap-2"><Clock size={16} className="text-[#1f5f89]"/> {proposal.proposedDate}</span>
+                  <span className="flex items-center gap-2"><MapPin size={16} className="text-[#1f5f89]"/> {proposal.venue}</span>
+                </div>
               </div>
-            )}
-          </CardContent>
-        </Card>
-      </main>
+              <ChevronRight className="text-slate-300 group-hover:text-[#1f5f89] transition-all group-hover:translate-x-2" size={32} />
+            </div>
+          ))
+        )}
+      </div>
     </div>
   );
 }
