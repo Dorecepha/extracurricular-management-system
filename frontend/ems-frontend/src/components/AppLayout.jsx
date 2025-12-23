@@ -26,7 +26,7 @@ function AppLayout() {
   ];
 
   const organizerNav = [
-    { to: '/proposals/submit', label: 'Apply to Host', icon: Edit3 },
+    { to: '/proposals/submit', label: 'Apply to Host Event', icon: Edit3 },
     { to: '/proposals/my', label: 'My Proposals', icon: ClipboardList },
   ];
 
@@ -45,10 +45,10 @@ function AppLayout() {
       <aside className="hidden w-64 flex-shrink-0 bg-[#1f5f89] text-white lg:block">
         <div className="flex h-full flex-col">
           <div className="flex items-center justify-center py-8 flex-col gap-2">
-             <h2 className="text-2xl font-bold tracking-wider">EMS</h2>
+             <h2 className="text-3xl font-bold tracking-wider">EMS</h2>
              <div className="text-center text-blue-100 text-xs font-semibold leading-tight">
-               <div className="opacity-80">{displayName}</div>
-               <div className="uppercase tracking-wide text-[10px] opacity-70">{userRole || 'USER'}</div>
+               <div className="text-xl opacity-80">{displayName}</div>
+               <div className="uppercase tracking-wide text-[15px] opacity-70">{userRole || 'USER'}</div>
              </div>
           </div>
           

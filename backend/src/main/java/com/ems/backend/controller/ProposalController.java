@@ -1,16 +1,20 @@
-﻿package com.ems.backend.controller;
+package com.ems.backend.controller;
 
 import com.ems.backend.dto.ProposalDTO;
 import com.ems.backend.security.CustomUserDetails;
 import com.ems.backend.service.ProposalService;
 import com.ems.backend.wrappers.Response;
-import jakarta.validation.Valid;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.validation.ConstraintViolationException;
+import jakarta.validation.Validator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -20,6 +24,7 @@ import java.util.List;
 public class ProposalController {
 
     private final ProposalService proposalService;
+    private final Validator validator;
 
     @GetMapping
     @PreAuthorize("hasRole('ORGANIZER')")
@@ -38,14 +43,24 @@ public class ProposalController {
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasRole('ORGANIZER')")
     public ResponseEntity<Response<ProposalDTO>> createProposal(
-            @Valid @RequestBody ProposalDTO proposalDTO,
-            @AuthenticationPrincipal CustomUserDetails userDetails) {
+            @RequestPart("proposal") String proposalJson,
+            @RequestPart(value = "files", required = false) MultipartFile[] files,
+            @AuthenticationPrincipal CustomUserDetails userDetails) throws Exception {
+
+        ProposalDTO proposalDTO = new ObjectMapper()
+                .findAndRegisterModules()
+                .readValue(proposalJson, ProposalDTO.class);
+
+        var violations = validator.validate(proposalDTO);
+        if (!violations.isEmpty()) {
+            throw new ConstraintViolationException(violations);
+        }
 
         Long organizerID = userDetails.getUser().getUserID();
-        ProposalDTO createdProposal = proposalService.createProposal(proposalDTO, organizerID);
+        ProposalDTO createdProposal = proposalService.createProposal(proposalDTO, files, organizerID);
 
         Response<ProposalDTO> response = Response.<ProposalDTO>builder()
                 .statusCode(HttpStatus.CREATED.value())

@@ -6,7 +6,6 @@ import {
   CheckCircle2, 
   FileUp, 
   AlertCircle, 
-  Info, 
   X, 
   Calendar, 
   MapPin, 
@@ -27,8 +26,7 @@ function CreateProposalForm() {
     endTime: '',
     venue: '',
     capacity: 50,
-    organizationType: 'YOUTH_UNION',
-    attachmentsJson: '[]' 
+    organizationType: 'YOUTH_UNION'
   });
 
   const mutation = useMutation({
@@ -37,37 +35,30 @@ function CreateProposalForm() {
     onError: (err) => setError(err.message || "Submission failed. Please check all fields.")
   });
 
-  const readFileAsDataUrl = (file) => new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result);
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
-
-  const handleFileChange = async (e) => {
+  const handleFileChange = (e) => {
     const selectedFiles = Array.from(e.target.files);
-    const newFiles = await Promise.all(selectedFiles.map(async (file) => ({
+    const MAX_SIZE = 5 * 1024 * 1024;
+
+    const validFiles = selectedFiles.filter(file => {
+      if (file.size > MAX_SIZE) {
+        alert(`${file.name} is too large (Max 5MB)`);
+        return false;
+      }
+      return true;
+    });
+
+    const newFiles = validFiles.map(file => ({
       name: file.name,
       size: (file.size / 1024).toFixed(2) + " KB",
-      type: file.type,
-      dataUrl: await readFileAsDataUrl(file)
-    })));
+      raw: file
+    }));
 
-    const updatedList = [...fileList, ...newFiles];
-    setFileList(updatedList);
-    setFormData({
-      ...formData,
-      attachmentsJson: JSON.stringify(updatedList)
-    });
+    setFileList((prev) => [...prev, ...newFiles]);
   };
 
   const removeFile = (index) => {
     const filteredList = fileList.filter((_, i) => i !== index);
     setFileList(filteredList);
-    setFormData({
-      ...formData,
-      attachmentsJson: JSON.stringify(filteredList)
-    });
   };
 
   const handleSubmit = (e) => {
@@ -93,10 +84,17 @@ function CreateProposalForm() {
       ...formData,
       startTime: toHms(formData.startTime),
       endTime: toHms(formData.endTime),
-      capacity: Number(formData.capacity),
+      capacity: Number(formData.capacity)
     };
 
-    mutation.mutate(payload);
+    const data = new FormData();
+    data.append('proposal', new Blob([JSON.stringify(payload)], { type: 'application/json' }));
+
+    fileList.forEach((file) => {
+      data.append('files', file.raw);
+    });
+
+    mutation.mutate(data);
   };
 
   if (submitted) return (

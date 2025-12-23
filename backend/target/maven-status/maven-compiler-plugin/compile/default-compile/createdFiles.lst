@@ -10,6 +10,8 @@ com\ems\backend\service\RegistrationService.class
 com\ems\backend\exception\GlobalExceptionHandler.class
 com\ems\backend\wrappers\Response$ResponseBuilder.class
 com\ems\backend\entity\EventOrganizer$EventOrganizerBuilderImpl.class
+com\ems\backend\config\WebConfig.class
+com\ems\backend\config\CorsConfig.class
 com\ems\backend\service\email\EmailService.class
 com\ems\backend\entity\EventOrganizer$EventOrganizerBuilder.class
 com\ems\backend\security\SecurityConfig.class
@@ -37,6 +39,7 @@ com\ems\backend\service\impl\email\OutlookMailSystem.class
 com\ems\backend\service\impl\NotificationServiceImpl.class
 com\ems\backend\service\NotificationService.class
 com\ems\backend\entity\Event$EventBuilder.class
+com\ems\backend\controller\AdminController$RejectionRequest.class
 com\ems\backend\security\CustomUserDetails.class
 com\ems\backend\service\impl\AuthServiceImpl$1.class
 com\ems\backend\enums\RegistrationStatus.class
@@ -50,11 +53,13 @@ com\ems\backend\controller\EventController.class
 com\ems\backend\entity\User.class
 com\ems\backend\service\impl\RegistrationServiceImpl.class
 com\ems\backend\security\JwtAuthenticationFilter.class
+com\ems\backend\service\impl\FileStorageServiceImpl.class
 com\ems\backend\entity\Student$StudentBuilder.class
 com\ems\backend\exception\CustomAuthenticationEntryPoint.class
 com\ems\backend\security\CustomUserDetails$CustomUserDetailsBuilder.class
 com\ems\backend\dto\AuthResponse.class
 com\ems\backend\entity\Notification.class
+com\ems\backend\dto\EventDTO$EventDTOBuilder.class
 com\ems\backend\controller\RegistrationController.class
 com\ems\backend\entity\Student$StudentBuilderImpl.class
 com\ems\backend\dto\AuthResponse$AuthResponseBuilder.class
@@ -72,6 +77,8 @@ com\ems\backend\enums\OrganizationType.class
 com\ems\backend\repository\EventRepository.class
 com\ems\backend\dto\EventUpdateDTO.class
 com\ems\backend\service\impl\ProposalServiceImpl.class
+com\ems\backend\service\FileStorageService.class
+com\ems\backend\dto\ProposalDTO$ProposalDTOBuilder.class
 com\ems\backend\repository\UserRepository.class
 com\ems\backend\repository\EventUpdateRequestRepository.class
 com\ems\backend\security\AuthUser.class

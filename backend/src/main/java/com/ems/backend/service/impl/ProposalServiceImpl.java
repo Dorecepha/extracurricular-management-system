@@ -1,19 +1,21 @@
-﻿package com.ems.backend.service.impl;
+package com.ems.backend.service.impl;
 
 import com.ems.backend.dto.ProposalDTO;
 import com.ems.backend.entity.Event;
 import com.ems.backend.entity.EventOrganizer;
-import com.ems.backend.entity.User;
 import com.ems.backend.entity.Proposal;
+import com.ems.backend.entity.User;
 import com.ems.backend.enums.ApprovalStatus;
 import com.ems.backend.enums.EventStatus;
 import com.ems.backend.repository.EventRepository;
 import com.ems.backend.repository.ProposalRepository;
 import com.ems.backend.repository.UserRepository;
+import com.ems.backend.service.FileStorageService;
 import com.ems.backend.service.ProposalService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -26,6 +28,7 @@ public class ProposalServiceImpl implements ProposalService {
     private final ProposalRepository proposalRepository;
     private final UserRepository userRepository;
     private final EventRepository eventRepository;
+    private final FileStorageService fileStorageService;
 
     @Override
     public List<ProposalDTO> getPendingProposals() {
@@ -88,7 +91,7 @@ public class ProposalServiceImpl implements ProposalService {
 
     @Override
     @Transactional
-    public ProposalDTO createProposal(ProposalDTO proposalDTO, Long organizerID) {
+    public ProposalDTO createProposal(ProposalDTO proposalDTO, MultipartFile[] files, Long organizerID) {
         User user = userRepository.findById(organizerID)
                 .orElseThrow(() -> new RuntimeException("Organizer not found with ID: " + organizerID));
         if (!(user instanceof EventOrganizer organizer)) {
@@ -103,6 +106,8 @@ public class ProposalServiceImpl implements ProposalService {
             throw new RuntimeException("End time must be after start time");
         }
 
+        String attachmentsJson = fileStorageService.storeFiles(files);
+
         Proposal proposal = Proposal.builder()
                 .title(proposalDTO.getTitle())
                 .description(proposalDTO.getDescription())
@@ -112,7 +117,7 @@ public class ProposalServiceImpl implements ProposalService {
                 .venue(proposalDTO.getVenue())
                 .capacity(proposalDTO.getCapacity())
                 .organizationType(proposalDTO.getOrganizationType())
-                .attachmentsJson(proposalDTO.getAttachmentsJson())
+                .attachmentsJson(attachmentsJson)
                 .status(ApprovalStatus.PENDING)
                 .submittedAt(LocalDateTime.now())
                 .organizer(organizer)

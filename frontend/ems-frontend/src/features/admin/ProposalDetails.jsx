@@ -57,12 +57,20 @@ function ProposalDetails() {
   const files = parseFiles(proposal.attachmentsJson);
 
   const handleOpenFile = (file) => {
+    if (file?.path) {
+      window.open(`http://localhost:8080/api/${file.path}`, '_blank', 'noopener');
+      return;
+    }
     if (file?.dataUrl) {
       window.open(file.dataUrl, '_blank', 'noopener');
       return;
     }
     if (file?.url) {
       window.open(file.url, '_blank', 'noopener');
+      return;
+    }
+    if (file?.path) {
+      window.open(`http://localhost:8080/api/${file.path}`, '_blank', 'noopener');
       return;
     }
     alert('No file data available to preview.');
