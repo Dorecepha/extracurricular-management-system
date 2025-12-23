@@ -79,7 +79,24 @@ function CreateProposalForm() {
       return;
     }
 
-    mutation.mutate(formData);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const chosenDate = formData.proposedDate ? new Date(formData.proposedDate) : null;
+    if (!chosenDate || chosenDate < today) {
+      setError("Proposed date must be today or in the future.");
+      return;
+    }
+
+    const toHms = (value) => (value?.length === 5 ? `${value}:00` : value);
+
+    const payload = {
+      ...formData,
+      startTime: toHms(formData.startTime),
+      endTime: toHms(formData.endTime),
+      capacity: Number(formData.capacity),
+    };
+
+    mutation.mutate(payload);
   };
 
   if (submitted) return (

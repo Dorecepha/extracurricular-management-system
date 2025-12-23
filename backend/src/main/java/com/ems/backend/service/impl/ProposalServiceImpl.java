@@ -3,6 +3,7 @@
 import com.ems.backend.dto.ProposalDTO;
 import com.ems.backend.entity.Event;
 import com.ems.backend.entity.EventOrganizer;
+import com.ems.backend.entity.User;
 import com.ems.backend.entity.Proposal;
 import com.ems.backend.enums.ApprovalStatus;
 import com.ems.backend.enums.EventStatus;
@@ -88,10 +89,9 @@ public class ProposalServiceImpl implements ProposalService {
     @Override
     @Transactional
     public ProposalDTO createProposal(ProposalDTO proposalDTO, Long organizerID) {
-        EventOrganizer organizer = (EventOrganizer) userRepository.findById(organizerID)
+        User user = userRepository.findById(organizerID)
                 .orElseThrow(() -> new RuntimeException("Organizer not found with ID: " + organizerID));
-
-        if (!(organizer instanceof EventOrganizer)) {
+        if (!(user instanceof EventOrganizer organizer)) {
             throw new RuntimeException("User is not an event organizer");
         }
 
