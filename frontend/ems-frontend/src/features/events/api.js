@@ -53,6 +53,11 @@ export const eventApi = {
     const response = await api.get('/events/managed');
     return response.data.data;
   },
+
+  getParticipants: async (eventID) => {
+    const response = await api.get(`/registrations/event/${eventID}/participants`);
+    return response.data.data;
+  },
 };
 
 export default eventApi;

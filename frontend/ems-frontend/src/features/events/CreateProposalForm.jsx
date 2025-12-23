@@ -1,6 +1,7 @@
 ﻿import React, { useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { eventApi } from './api';
+import { format } from 'date-fns';
 import { 
   Send, 
   CheckCircle2, 
@@ -187,6 +188,11 @@ function CreateProposalForm() {
               value={formData.proposedDate}
               onChange={(e) => setFormData({...formData, proposedDate: e.target.value})}
             />
+            {formData.proposedDate && (
+              <p className="text-[11px] text-slate-400 font-medium">
+                Selected: {format(new Date(formData.proposedDate), 'dd/MM/yyyy')}
+              </p>
+            )}
           </div>
 
           <div className="space-y-1">

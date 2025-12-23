@@ -6,6 +6,7 @@ import {
   ArrowLeft, CheckCircle, XCircle, Loader2, AlertCircle,
   MapPin, Clock, Users, FileText, Paperclip, ExternalLink
 } from 'lucide-react';
+import { format } from 'date-fns';
 
 const parseFiles = (json) => {
   try {
@@ -15,6 +16,12 @@ const parseFiles = (json) => {
     console.warn('Attachment parse error', err);
     return [];
   }
+};
+
+const formatDate = (value) => {
+  if (!value) return 'TBD';
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? value : format(date, 'dd/MM/yyyy');
 };
 
 function ProposalDetails() {
@@ -109,7 +116,7 @@ function ProposalDetails() {
             <div className="bg-slate-50 p-6 rounded-3xl border border-slate-100 space-y-1">
                <Clock className="text-[#1f5f89] mb-2" size={20} />
                <p className="text-[10px] font-black text-slate-400 uppercase">Proposed Time</p>
-               <p className="font-bold text-slate-900">{proposal.proposedDate}</p>
+               <p className="font-bold text-slate-900">{formatDate(proposal.proposedDate)}</p>
                <p className="text-xs text-slate-500 font-medium">{proposal.startTime} - {proposal.endTime}</p>
             </div>
             <div className="bg-slate-50 p-6 rounded-3xl border border-slate-100 space-y-1">

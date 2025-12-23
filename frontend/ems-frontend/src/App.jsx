@@ -15,6 +15,8 @@ import UpdateEventForm from './features/events/UpdateEventForm';
 import UpdateReviewList from './features/admin/UpdateReviewList';
 import UpdateReviewDetails from './features/admin/UpdateReviewDetails';
 import OrganizerEvents from './features/events/OrganizerEvents';
+import Dashboard from './features/dashboard/Dashboard';
+import AuditLogs from './features/admin/AuditLogs';
 
 const queryClient = new QueryClient();
 
@@ -31,7 +33,7 @@ function App() {
               <AppLayout />
             </ProtectedRoute>
           }>
-            <Route path="/dashboard" element={<div className="p-4 text-2xl">Dashboard Placeholder</div>} />
+            <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/events" element={<EventList />} />
             <Route path="/events/:eventID/update" element={<UpdateEventForm />} />
             <Route path="/my-events" element={<RegistrationHistory />} />
@@ -43,6 +45,7 @@ function App() {
             <Route path="/admin/proposals/:proposalID" element={<ProposalDetails />} />
             <Route path="/admin/updates" element={<UpdateReviewList />} />
             <Route path="/admin/updates/:requestID" element={<UpdateReviewDetails />} />
+            <Route path="/admin/audit" element={<AuditLogs />} />
           </Route>
 
           <Route path="*" element={<Navigate to="/login" replace />} />

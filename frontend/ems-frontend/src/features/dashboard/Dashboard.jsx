@@ -1,0 +1,128 @@
+import React, { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { useNavigate } from 'react-router-dom';
+import { dashboardApi } from './dashboardApi';
+import { safeParseUser } from '../../lib/safeParse';
+import DashboardCalendar from './components/DashboardCalendar';
+import { Users, AlertCircle, ArrowRight, Loader2, CheckCircle, X, Bookmark } from 'lucide-react';
+
+function Dashboard() {
+  const navigate = useNavigate();
+  const user = safeParseUser();
+  const [showSuccess, setShowSuccess] = useState(true);
+  const { data, isLoading } = useQuery({
+    queryKey: ['dashboard-stats'],
+    queryFn: dashboardApi.getStats
+  });
+  const hasResolution = data?.myProposals?.some((p) => p.status !== 'PENDING');
+
+  if (isLoading) {
+    return (
+      <div className="p-20 flex justify-center">
+        <Loader2 className="animate-spin" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="max-w-6xl mx-auto space-y-8">
+      <header className="flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Dashboard</h1>
+          <p className="text-slate-500 text-sm font-medium">Welcome back, {user?.email}</p>
+        </div>
+      </header>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="space-y-6">
+          {user?.role === 'ORGANIZER' && (
+            <div className="space-y-3">
+              <div className="ems-card p-6 bg-slate-900 text-white border-none">
+                <h3 className="text-sm font-bold uppercase tracking-widest text-slate-400 mb-4">Management Hub</h3>
+                <div className="space-y-3">
+                  <button
+                    onClick={() => navigate('/managed-events')}
+                    className="w-full flex items-center justify-between p-3 bg-white/5 hover:bg-white/10 rounded-xl transition text-sm font-medium"
+                  >
+                    View Hosted Events <ArrowRight size={16} />
+                  </button>
+                  <button
+                    onClick={() => navigate('/proposals/my')}
+                    className="w-full flex items-center justify-between p-4 bg-white/5 hover:bg-white/10 rounded-xl transition group relative"
+                  >
+                    <span className="flex items-center gap-3 text-sm font-medium">
+                      <Bookmark size={18} className="text-blue-400" /> Application History
+                    </span>
+                    <div className="flex items-center gap-2">
+                      {hasResolution && (
+                        <span className="flex h-2 w-2 rounded-full bg-rose-500 animate-ping"></span>
+                      )}
+                      <ArrowRight size={16} className="text-slate-500 group-hover:translate-x-1 transition-transform" />
+                    </div>
+                  </button>
+                </div>
+              </div>
+
+              {showSuccess && data?.myProposals?.some((p) => p.status === 'APPROVED') && (
+                <div className="p-4 bg-emerald-50 border border-emerald-100 rounded-xl flex justify-between items-center animate-in slide-in-from-top">
+                  <div className="flex gap-3 items-center text-emerald-700 text-xs font-bold">
+                    <CheckCircle size={16} /> Application Approved! Check Managed Events.
+                  </div>
+                  <button onClick={() => setShowSuccess(false)} className="text-emerald-500 hover:text-emerald-700">
+                    <X size={14} />
+                  </button>
+                </div>
+              )}
+
+              {data?.myProposals
+                ?.filter((p) => p.status === 'REJECTED')
+                .map((p) => (
+                  <div key={p.proposalID} className="p-4 bg-rose-50 border border-rose-100 rounded-xl space-y-2">
+                    <div className="flex gap-3 items-center text-rose-700 text-xs font-bold">
+                      <AlertCircle size={16} /> {p.title} was Rejected.
+                    </div>
+                    <button
+                      onClick={() => navigate('/proposals/my')}
+                      className="text-[10px] font-bold text-rose-600 underline"
+                    >
+                      Update & Resubmit
+                    </button>
+                  </div>
+                ))}
+            </div>
+          )}
+
+          {user?.role === 'STUDENT' && (
+            <div className="ems-card p-6">
+              <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Participation Summary</h3>
+              <div className="flex items-center gap-4">
+                <div className="p-4 bg-blue-50 text-blue-600 rounded-2xl">
+                  <Users />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold text-slate-900">{data?.myTotalRegistrations ?? 0}</p>
+                  <p className="text-xs text-slate-500 font-medium uppercase">Total Bookings</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {user?.role === 'ADMIN' && (
+            <div className="ems-card p-6 bg-blue-600 text-white border-none">
+              <h3 className="font-bold uppercase text-xs tracking-widest text-blue-200 mb-2">Admin Notice</h3>
+              <p className="text-sm font-medium leading-relaxed italic">
+                "You have {data?.pendingProposalsCount ?? 0} pending approvals in the inbox."
+              </p>
+            </div>
+          )}
+        </div>
+
+        <div className="lg:col-span-2">
+          <DashboardCalendar events={data?.activeEvents} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default Dashboard;

@@ -5,6 +5,7 @@ import {
   ClipboardList, Clock, CheckCircle, XCircle, Loader2, 
   Edit3, Send, X, MapPin, Calendar, Users, FileUp, Info 
 } from 'lucide-react';
+import { format } from 'date-fns';
 
 const parseAttachments = (json) => {
   try {
@@ -13,6 +14,12 @@ const parseAttachments = (json) => {
   } catch {
     return [];
   }
+};
+
+const formatDate = (value) => {
+  if (!value) return 'TBD';
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? value : format(date, 'dd/MM/yyyy');
 };
 
 function MyProposalsList() {
@@ -92,7 +99,11 @@ function MyProposalsList() {
                   <h3 className="text-2xl font-black text-slate-900">{p.title}</h3>
                   <span className={`px-3 py-1 rounded-full text-[10px] font-black border uppercase ${p.status === 'REJECTED' ? 'bg-red-50 text-red-700 border-red-100' : 'bg-blue-50 text-blue-700'}`}>{p.status}</span>
                </div>
-               <div className="flex gap-4 text-xs font-bold text-slate-400 uppercase"><span className="flex items-center gap-1"><Clock size={14}/> {p.submittedAt?.split('T')[0]}</span></div>
+               <div className="flex gap-4 text-xs font-bold text-slate-400 uppercase">
+                 <span className="flex items-center gap-1">
+                   <Clock size={14}/> {formatDate(p.proposedDate)}
+                 </span>
+               </div>
                {p.rejectionReason && <div className="mt-4 p-4 bg-red-50 rounded-2xl border border-red-100 text-red-600 text-xs font-bold italic flex items-center gap-2"><Info size={14}/> Admin Feedback: "{p.rejectionReason}"</div>}
             </div>
             {p.status === 'REJECTED' && (

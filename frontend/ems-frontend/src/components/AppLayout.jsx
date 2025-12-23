@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
-import { Calendar, FilePlus, ClipboardList, ShieldCheck, LogOut, Bookmark, UserCircle } from 'lucide-react';
+import { Calendar, FilePlus, ClipboardList, ShieldCheck, ShieldAlert, LogOut, Bookmark, UserCircle, LayoutDashboard } from 'lucide-react';
 import { safeParseUser, safeGetItem, clearAuthData } from '../lib/safeParse';
 
 function AppLayout() {
@@ -23,12 +23,14 @@ function AppLayout() {
   if (isLoading) return null;
 
   const navItems = [
+    { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, roles: ['STUDENT', 'ORGANIZER', 'ADMIN'] },
     { to: '/events', label: 'Explore Events', icon: Calendar, roles: ['STUDENT', 'ORGANIZER', 'ADMIN'] },
     { to: '/proposals/submit', label: 'Apply to Host', icon: FilePlus, roles: ['ORGANIZER'] },
     { to: '/managed-events', label: 'Managed Events', icon: ClipboardList, roles: ['ORGANIZER'] },
     { to: '/proposals/my', label: 'Application History', icon: Bookmark, roles: ['ORGANIZER'] },
     { to: '/my-events', label: 'My Registrations', icon: Bookmark, roles: ['STUDENT'] },
     { to: '/admin/proposals', label: 'Review Inbox', icon: ShieldCheck, roles: ['ADMIN'] },
+    { to: '/admin/audit', label: 'Audit Trail', icon: ShieldAlert, roles: ['ADMIN'] },
   ];
 
   return (
