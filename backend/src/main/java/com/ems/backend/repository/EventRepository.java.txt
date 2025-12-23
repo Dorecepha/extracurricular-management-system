@@ -20,6 +20,4 @@ public interface EventRepository extends JpaRepository<Event, Long> {
     Page<Event> findByApprovalStatusAndStatusNotAndTitleContainingIgnoreCase(ApprovalStatus approvalStatus, EventStatus status, String title, Pageable pageable);
     List<Event> findByOrganizer_UserID(Long organizerId);
     List<Event> findByEventDate(LocalDate date);
-    long countByStatus(EventStatus status);
-    long countByOrganizer_UserID(Long organizerID);
 }

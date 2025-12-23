@@ -7,6 +7,7 @@ import com.ems.backend.entity.Student;
 import com.ems.backend.entity.User;
 import com.ems.backend.enums.EventStatus;
 import com.ems.backend.enums.RegistrationStatus;
+import com.ems.backend.enums.UserRole;
 import com.ems.backend.exception.NotFoundException;
 import com.ems.backend.repository.EventRepository;
 import com.ems.backend.repository.RegistrationRepository;
@@ -18,7 +19,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -139,5 +142,33 @@ public class RegistrationServiceImpl implements RegistrationService {
         registrationRepository.saveAll(registrations);
 
         event.setCurrentRegistrations(0);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<Map<String, String>> getParticipantDetails(Long eventID, User requester) {
+        Event event = eventRepository.findById(eventID)
+                .orElseThrow(() -> new NotFoundException("Event not found with ID: " + eventID));
+
+        if (requester.getRole() == UserRole.ORGANIZER) {
+            Long organizerId = event.getOrganizer() != null ? event.getOrganizer().getUserID() : null;
+            if (organizerId == null || !organizerId.equals(requester.getUserID())) {
+                throw new IllegalStateException("Unauthorized to view participants for this event.");
+            }
+        }
+
+        List<Registration> registrations = registrationRepository.findByEvent_EventID(eventID);
+        return registrations.stream()
+                .map(reg -> {
+                    Student student = reg.getStudent();
+                    String firstName = student.getFirstName() != null ? student.getFirstName() : "";
+                    String lastName = student.getLastName() != null ? student.getLastName() : "";
+                    String name = (firstName + " " + lastName).trim();
+                    Map<String, String> map = new HashMap<>();
+                    map.put("name", name.isBlank() ? "Student" : name);
+                    map.put("email", student.getEmail());
+                    return map;
+                })
+                .toList();
     }
 }

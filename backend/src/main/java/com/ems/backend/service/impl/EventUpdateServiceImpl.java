@@ -1,21 +1,29 @@
 package com.ems.backend.service.impl;
 
 import com.ems.backend.dto.EventUpdateRequestDTO;
-import com.ems.backend.entity.Administrator;
 import com.ems.backend.entity.Event;
 import com.ems.backend.entity.EventOrganizer;
 import com.ems.backend.entity.EventUpdateRequest;
+import com.ems.backend.entity.Registration;
 import com.ems.backend.entity.User;
 import com.ems.backend.enums.ApprovalStatus;
 import com.ems.backend.enums.EventStatus;
+import com.ems.backend.enums.RegistrationStatus;
+import com.ems.backend.enums.UserRole;
 import com.ems.backend.exception.NotFoundException;
 import com.ems.backend.repository.EventRepository;
 import com.ems.backend.repository.EventUpdateRequestRepository;
+import com.ems.backend.repository.RegistrationRepository;
 import com.ems.backend.repository.UserRepository;
+import com.ems.backend.security.CustomUserDetails;
+import com.ems.backend.service.AuditLogService;
 import com.ems.backend.service.EventUpdateRequestService;
 import com.ems.backend.service.FileStorageService;
 import com.ems.backend.service.RegistrationService;
+import com.ems.backend.service.email.EmailService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -30,8 +38,11 @@ public class EventUpdateServiceImpl implements EventUpdateRequestService {
     private final EventUpdateRequestRepository requestRepository;
     private final EventRepository eventRepository;
     private final UserRepository userRepository;
+    private final RegistrationRepository registrationRepository;
     private final RegistrationService registrationService;
     private final FileStorageService fileStorageService;
+    private final AuditLogService auditLogService;
+    private final EmailService emailService;
 
     @Override
     @Transactional
@@ -138,16 +149,53 @@ public class EventUpdateServiceImpl implements EventUpdateRequestService {
 
         eventRepository.save(event); // Triggers @Version update
 
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && auth.getPrincipal() instanceof CustomUserDetails userDetails) {
+            User admin = userDetails.getUser();
+
+            auditLogService.log(
+                    admin.getUserID(),
+                    admin.getEmail(),
+                    "EVENT_UPDATE_APPROVED",
+                    "EVENT",
+                    event.getEventID(),
+                    "SUCCESS"
+            );
+        }
+
+        if (notify) {
+            emailService.sendNotification(
+                    event.getOrganizer().getEmail(),
+                    "Modification Approved",
+                    "Your changes for '" + event.getTitle() + "' are now live."
+            );
+
+            List<Registration> participants = registrationRepository.findByEvent_EventIDAndStatus(
+                    event.getEventID(),
+                    RegistrationStatus.CONFIRMED
+            );
+
+            for (Registration reg : participants) {
+                emailService.sendNotification(
+                        reg.getStudent().getEmail(),
+                        "Important: Event Update",
+                        "The event '" + event.getTitle() + "' you are registered for has been updated. "
+                                + "Please check the portal for new venue/time details."
+                );
+            }
+        }
+
         request.setStatus(ApprovalStatus.APPROVED);
         request.setReviewedAt(LocalDateTime.now());
 
         if (adminID != null) {
             User user = userRepository.findById(adminID)
                     .orElseThrow(() -> new NotFoundException("User not found with ID: " + adminID));
-            if (user instanceof Administrator admin) {
-                request.setReviewedBy(admin);
-            } else {
+            if (user.getRole() != UserRole.ADMIN) {
                 throw new IllegalStateException("User is not an administrator");
+            }
+            if (user instanceof com.ems.backend.entity.Administrator admin) {
+                request.setReviewedBy(admin);
             }
         }
 
@@ -171,10 +219,11 @@ public class EventUpdateServiceImpl implements EventUpdateRequestService {
         if (adminID != null) {
             User user = userRepository.findById(adminID)
                     .orElseThrow(() -> new NotFoundException("User not found with ID: " + adminID));
-            if (user instanceof Administrator admin) {
-                request.setReviewedBy(admin);
-            } else {
+            if (user.getRole() != UserRole.ADMIN) {
                 throw new IllegalStateException("User is not an administrator");
+            }
+            if (user instanceof com.ems.backend.entity.Administrator admin) {
+                request.setReviewedBy(admin);
             }
         }
 

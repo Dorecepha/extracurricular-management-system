@@ -10,9 +10,14 @@ import com.ems.backend.enums.EventStatus;
 import com.ems.backend.repository.EventRepository;
 import com.ems.backend.repository.ProposalRepository;
 import com.ems.backend.repository.UserRepository;
+import com.ems.backend.security.CustomUserDetails;
+import com.ems.backend.service.AuditLogService;
 import com.ems.backend.service.FileStorageService;
 import com.ems.backend.service.ProposalService;
+import com.ems.backend.service.email.EmailService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -33,6 +38,8 @@ public class ProposalServiceImpl implements ProposalService {
     private final UserRepository userRepository;
     private final EventRepository eventRepository;
     private final FileStorageService fileStorageService;
+    private final AuditLogService auditLogService;
+    private final EmailService emailService;
     private final ObjectMapper mapper = new ObjectMapper().findAndRegisterModules();
 
     @Override
@@ -81,6 +88,24 @@ public class ProposalServiceImpl implements ProposalService {
         event.setApprovalStatus(ApprovalStatus.APPROVED);
 
         eventRepository.save(event);
+
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && auth.getPrincipal() instanceof CustomUserDetails userDetails) {
+            User admin = userDetails.getUser();
+            auditLogService.log(
+                    admin.getUserID(),
+                    admin.getEmail(),
+                    "PROPOSAL_APPROVED",
+                    "PROPOSAL",
+                    proposalID,
+                    "SUCCESS"
+            );
+        }
+        emailService.sendNotification(
+                proposal.getOrganizer().getEmail(),
+                "Proposal Approved!",
+                "Congratulations! Your proposal '" + proposal.getTitle() + "' has been approved and is now live for registration."
+        );
     }
 
     @Override
@@ -92,6 +117,11 @@ public class ProposalServiceImpl implements ProposalService {
         proposal.setStatus(ApprovalStatus.REJECTED);
         proposal.setRejectionReason(reason);
         proposalRepository.save(proposal);
+        emailService.sendNotification(
+                proposal.getOrganizer().getEmail(),
+                "Proposal Status Update",
+                "Unfortunately, your proposal '" + proposal.getTitle() + "' was not approved. Reason: " + reason
+        );
     }
 
     @Override

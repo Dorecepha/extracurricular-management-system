@@ -16,17 +16,18 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Map;
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/registrations")
 @RequiredArgsConstructor
-@PreAuthorize("hasRole('STUDENT')")
 public class RegistrationController {
 
     private final RegistrationService registrationService;
 
     @PostMapping("/event/{eventID}")
+    @PreAuthorize("hasRole('STUDENT')")
     public ResponseEntity<Response<Void>> register(
             @PathVariable Long eventID,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
@@ -39,6 +40,7 @@ public class RegistrationController {
     }
 
     @GetMapping("/me")
+    @PreAuthorize("hasRole('STUDENT')")
     public ResponseEntity<Response<List<RegistrationDTO>>> getMyRegistrations(
             @AuthenticationPrincipal CustomUserDetails userDetails) {
 
@@ -49,6 +51,7 @@ public class RegistrationController {
     }
 
     @DeleteMapping("/{registrationID}")
+    @PreAuthorize("hasRole('STUDENT')")
     public ResponseEntity<Response<Void>> cancel(
             @PathVariable Long registrationID,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
@@ -57,5 +60,17 @@ public class RegistrationController {
         registrationService.cancelRegistration(registrationID, studentID);
 
         return ResponseEntity.ok(new Response<>(200, "Registration cancelled", null));
+    }
+
+    @GetMapping("/event/{eventID}/participants")
+    @PreAuthorize("hasAnyRole('ADMIN','ORGANIZER')")
+    public ResponseEntity<Response<List<Map<String, String>>>> getParticipants(
+            @PathVariable Long eventID,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+
+        List<Map<String, String>> participants =
+                registrationService.getParticipantDetails(eventID, userDetails.getUser());
+
+        return ResponseEntity.ok(new Response<>(200, "Participants fetched", participants));
     }
 }

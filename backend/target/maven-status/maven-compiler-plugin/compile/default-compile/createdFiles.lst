@@ -6,6 +6,8 @@ com\ems\backend\config\WebConfig.class
 com\ems\backend\service\email\EmailService.class
 com\ems\backend\entity\Administrator$AdministratorBuilderImpl.class
 com\ems\backend\repository\RegistrationRepository.class
+com\ems\backend\controller\ActivityController.class
+com\ems\backend\service\AuditLogService.class
 com\ems\backend\wrappers\Response.class
 com\ems\backend\service\EventService.class
 com\ems\backend\controller\EventUpdateController.class
@@ -16,6 +18,7 @@ com\ems\backend\dto\LoginRequest.class
 com\ems\backend\entity\EventUpdateRequest.class
 com\ems\backend\service\impl\NotificationServiceImpl.class
 com\ems\backend\service\impl\ProposalServiceImpl$1.class
+com\ems\backend\entity\AuditLog.class
 com\ems\backend\security\CustomUserDetails.class
 com\ems\backend\dto\ProposalDTO.class
 com\ems\backend\entity\Registration$RegistrationBuilder.class
@@ -25,10 +28,12 @@ com\ems\backend\security\JwtAuthenticationFilter.class
 com\ems\backend\service\impl\FileStorageServiceImpl.class
 com\ems\backend\service\impl\ProposalServiceImpl$2.class
 com\ems\backend\entity\Student$StudentBuilder.class
+com\ems\backend\entity\AuditLog$AuditLogBuilder.class
 com\ems\backend\security\CustomUserDetails$CustomUserDetailsBuilder.class
 com\ems\backend\dto\AuthResponse.class
 com\ems\backend\controller\RegistrationController.class
 com\ems\backend\entity\Student$StudentBuilderImpl.class
+com\ems\backend\service\impl\AuditLogServiceImpl.class
 com\ems\backend\entity\EventOrganizer.class
 com\ems\backend\exception\BadRequestException.class
 com\ems\backend\controller\AuthController.class
@@ -60,12 +65,14 @@ com\ems\backend\dto\ReviewQueueItemDTO.class
 com\ems\backend\entity\Student.class
 com\ems\backend\security\CustomUserDetailsService.class
 com\ems\backend\exception\CustomAccessDenialHandler.class
+com\ems\backend\dto\DashboardDTO.class
 com\ems\backend\entity\Event.class
 com\ems\backend\service\EventUpdateRequestService.class
 com\ems\backend\service\AuthService.class
 com\ems\backend\exception\NotFoundException.class
 com\ems\backend\entity\Administrator$AdministratorBuilder.class
 com\ems\backend\dto\EventDTO.class
+com\ems\backend\controller\DashboardController.class
 com\ems\backend\dto\LoginRequest$LoginRequestBuilder.class
 com\ems\backend\service\impl\email\OutlookMailSystem.class
 com\ems\backend\service\NotificationService.class
@@ -79,6 +86,9 @@ com\ems\backend\repository\NotificationRepository.class
 com\ems\backend\controller\EventController.class
 com\ems\backend\entity\User.class
 com\ems\backend\service\impl\RegistrationServiceImpl.class
+com\ems\backend\repository\AuditLogRepository.class
+com\ems\backend\service\email\impl\OutlookEmailAdapter.class
+com\ems\backend\dto\DashboardDTO$DashboardDTOBuilder.class
 com\ems\backend\exception\CustomAuthenticationEntryPoint.class
 com\ems\backend\entity\Notification.class
 com\ems\backend\dto\EventDTO$EventDTOBuilder.class
