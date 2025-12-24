@@ -4,7 +4,9 @@ import com.ems.backend.wrappers.Response;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -16,6 +18,11 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<Response<Void>> handleGeneralError(RuntimeException e) {
-        return ResponseEntity.status(500).body(new Response<>(500, "System Error: " + e.getMessage(), null));
+        log.error("CRITICAL SYSTEM ERROR: ", e);
+        return ResponseEntity.status(500).body(
+                new Response<>(500,
+                        "An unexpected system error occurred. Please contact university support.",
+                        null)
+        );
     }
 }

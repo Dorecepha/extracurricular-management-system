@@ -63,7 +63,11 @@ function RegistrationHistory() {
                 </div>
               </div>
               <button 
-                onClick={() => cancelMutation.mutate(reg.registrationID)}
+                onClick={() => {
+                  if (window.confirm("Are you sure you want to cancel this registration? This will release your seat back to the university pool.")) {
+                    cancelMutation.mutate(reg.registrationID);
+                  }
+                }}
                 disabled={cancelMutation.isPending}
                 className="px-4 py-2 text-rose-600 hover:bg-rose-50 rounded-xl text-xs font-bold transition-all border border-rose-100"
               >

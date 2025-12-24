@@ -65,8 +65,10 @@ function ProposalDetails() {
 
   const handleOpenFile = (file) => {
     if (file?.path) {
+      const apiBase = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api';
       const safePath = encodeURI(file.path);
-      window.open(`http://localhost:8080/api/${safePath}`, '_blank', 'noopener');
+      const finalUrl = `${apiBase.replace(/\/$/, '')}/${safePath.replace(/^\//, '')}`;
+      window.open(finalUrl, '_blank', 'noopener');
       return;
     }
     if (file?.dataUrl) {

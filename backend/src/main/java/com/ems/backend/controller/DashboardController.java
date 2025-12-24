@@ -53,7 +53,7 @@ public class DashboardController {
             long organizerCount = userRepository.countByRole(UserRole.EVENT_ORGANIZER)
                     + userRepository.countByRole(UserRole.ORGANIZER);
             long pendingProposals = proposalRepository.countByStatus(ApprovalStatus.PENDING);
-            long pendingUpdates = eventUpdateRequestRepository.findByStatus(ApprovalStatus.PENDING).size();
+            long pendingUpdates = eventUpdateRequestRepository.countByStatus(ApprovalStatus.PENDING);
 
             builder.totalStudents(userRepository.countByRole(UserRole.STUDENT))
                    .totalOrganizers(organizerCount)

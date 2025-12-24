@@ -141,7 +141,7 @@ public class ProposalServiceImpl implements ProposalService {
         }
 
         if (proposalDTO.getEndTime().isBefore(proposalDTO.getStartTime())) {
-            throw new RuntimeException("End time must be after start time");
+            throw new IllegalStateException("Validation Error: End time must be after start time");
         }
 
         LocalDateTime proposedStart = LocalDateTime.of(proposalDTO.getProposedDate(), proposalDTO.getStartTime());
