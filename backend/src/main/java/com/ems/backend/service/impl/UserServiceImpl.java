@@ -32,10 +32,25 @@ public class UserServiceImpl implements UserService {
             throw new IllegalStateException("Security violation: You cannot modify your own administrative status.");
         }
 
+        AccountStatus targetStatus;
+        try {
+            targetStatus = AccountStatus.valueOf(status);
+        } catch (IllegalArgumentException ex) {
+            throw new IllegalArgumentException("Invalid account status: " + status);
+        }
+
         User user = userRepository.findById(targetUserID)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        user.setAccountStatus(AccountStatus.valueOf(status));
+        AccountStatus currentStatus = user.getAccountStatus();
+        boolean illegalSuspendedDisabledSwap =
+                (currentStatus == AccountStatus.SUSPENDED && targetStatus == AccountStatus.INACTIVE) ||
+                        (currentStatus == AccountStatus.INACTIVE && targetStatus == AccountStatus.SUSPENDED);
+        if (illegalSuspendedDisabledSwap) {
+            throw new IllegalStateException("Transition between SUSPENDED and INACTIVE requires activating the account first.");
+        }
+
+        user.setAccountStatus(targetStatus);
         userRepository.save(user);
 
         auditLogService.log(adminID, "admin@ems.com", "UPDATE_USER_STATUS", "USER", targetUserID, "SUCCESS", null, null);

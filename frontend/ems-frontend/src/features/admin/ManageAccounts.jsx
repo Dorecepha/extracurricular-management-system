@@ -2,7 +2,7 @@ import React from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { adminApi } from './adminApi';
 import { safeParseUser } from '../../lib/safeParse';
-import { UserCheck, UserX, UserMinus, Loader2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 
 function ManageAccounts() {
   const queryClient = useQueryClient();
@@ -27,9 +27,22 @@ function ManageAccounts() {
     switch(status) {
       case 'ACTIVE': return 'bg-emerald-50 text-emerald-700 border-emerald-100';
       case 'SUSPENDED': return 'bg-rose-50 text-rose-700 border-rose-100';
-      case 'INACTIVE': return 'bg-slate-100 text-slate-500 border-slate-200';
+      case 'INACTIVE': return 'bg-slate-100 text-slate-600 border-slate-200';
       default: return 'bg-slate-50 text-slate-400';
     }
+  };
+
+  const getActionsForStatus = (status) => {
+    if (status === 'ACTIVE') {
+      return [
+        { next: 'SUSPENDED', label: 'Suspend', className: 'text-rose-700 border-rose-200 hover:bg-rose-50' },
+        { next: 'INACTIVE', label: 'Disable', className: 'text-slate-700 border-slate-200 hover:bg-slate-50' },
+      ];
+    }
+    if (status === 'SUSPENDED' || status === 'INACTIVE') {
+      return [{ next: 'ACTIVE', label: 'Activate', className: 'text-emerald-700 border-emerald-200 hover:bg-emerald-50' }];
+    }
+    return [];
   };
 
   return (
@@ -72,15 +85,16 @@ function ManageAccounts() {
                       <span className="text-[10px] font-bold text-slate-300 italic">Self-Locked</span>
                     ) : (
                       <div className="flex justify-end gap-1">
-                        {u.accountStatus !== 'ACTIVE' && (
-                          <button onClick={() => statusMutation.mutate({ id: u.userID, status: 'ACTIVE' })} className="p-2 text-slate-400 hover:text-emerald-600 rounded-lg"><UserCheck size={18} /></button>
-                        )}
-                        {u.accountStatus !== 'SUSPENDED' && (
-                          <button onClick={() => statusMutation.mutate({ id: u.userID, status: 'SUSPENDED' })} className="p-2 text-slate-400 hover:text-rose-600 rounded-lg"><UserX size={18} /></button>
-                        )}
-                        {u.accountStatus !== 'INACTIVE' && (
-                          <button onClick={() => statusMutation.mutate({ id: u.userID, status: 'INACTIVE' })} className="p-2 text-slate-400 hover:text-slate-900 rounded-lg"><UserMinus size={18} /></button>
-                        )}
+                        {getActionsForStatus(u.accountStatus).map(action => (
+                          <button
+                            key={action.next}
+                            onClick={() => statusMutation.mutate({ id: u.userID, status: action.next })}
+                            className={`px-3 py-1.5 text-[10px] font-black uppercase tracking-wide border rounded-md transition-colors ${action.className}`}
+                            title={`${action.label} Account`}
+                          >
+                            {action.label}
+                          </button>
+                        ))}
                       </div>
                     )}
                   </td>

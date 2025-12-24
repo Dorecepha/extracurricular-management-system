@@ -26,12 +26,12 @@ api.interceptors.response.use(
     return response;
   },
   (error) => {
-    // Extract the message from our Backend Response Wrapper
+    console.error("AXIOS DEBUG:", error); // DNA: See if it's ERR_NETWORK or 403
     const data = error.response?.data;
     const message =
       (typeof data === 'string' && data) ||
       (typeof data === 'object' && data?.message) ||
-      'An unexpected error occurred.';
+      `Connection failed. Is the backend running at ${import.meta.env.VITE_API_BASE_URL}?`;
 
     return Promise.reject(new Error(message));
   }
