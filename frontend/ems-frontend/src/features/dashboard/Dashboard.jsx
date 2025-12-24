@@ -10,11 +10,11 @@ function Dashboard() {
   const navigate = useNavigate();
   const user = safeParseUser();
   const [showSuccess, setShowSuccess] = useState(true);
-  const { data, isLoading } = useQuery({
+  const { data: stats, isLoading } = useQuery({
     queryKey: ['dashboard-stats'],
     queryFn: dashboardApi.getStats
   });
-  const hasResolution = data?.myProposals?.some((p) => p.status !== 'PENDING');
+  const hasResolution = stats?.myProposals?.some((p) => p.status !== 'PENDING');
 
   if (isLoading) {
     return (
@@ -63,7 +63,7 @@ function Dashboard() {
                 </div>
               </div>
 
-              {showSuccess && data?.myProposals?.some((p) => p.status === 'APPROVED') && (
+              {showSuccess && stats?.myProposals?.some((p) => p.status === 'APPROVED') && (
                 <div className="p-4 bg-emerald-50 border border-emerald-100 rounded-xl flex justify-between items-center animate-in slide-in-from-top">
                   <div className="flex gap-3 items-center text-emerald-700 text-xs font-bold">
                     <CheckCircle size={16} /> Application Approved! Check Managed Events.
@@ -74,7 +74,7 @@ function Dashboard() {
                 </div>
               )}
 
-              {data?.myProposals
+              {stats?.myProposals
                 ?.filter((p) => p.status === 'REJECTED')
                 .map((p) => (
                   <div key={p.proposalID} className="p-4 bg-rose-50 border border-rose-100 rounded-xl space-y-2">
@@ -101,7 +101,7 @@ function Dashboard() {
                     <Users />
                   </div>
                   <div>
-                    <p className="text-2xl font-bold text-slate-900">{data?.myTotalRegistrations ?? 0}</p>
+                    <p className="text-2xl font-bold text-slate-900">{stats?.myTotalRegistrations ?? 0}</p>
                     <p className="text-xs text-slate-500 font-medium uppercase">Total Bookings</p>
                   </div>
                 </div>
@@ -123,11 +123,11 @@ function Dashboard() {
               <div className="space-y-4">
                 <div className="p-4 bg-white/10 rounded-2xl flex justify-between items-center">
                   <span className="text-sm font-medium">New Proposals</span>
-                  <span className="bg-white text-indigo-900 px-3 py-1 rounded-lg font-black text-xs">{data?.pendingProposalsCount ?? 0}</span>
+                  <span className="bg-white text-indigo-900 px-3 py-1 rounded-lg font-black text-xs">{stats?.pendingProposalsCount ?? 0}</span>
                 </div>
                 <div className="p-4 bg-white/10 rounded-2xl flex justify-between items-center">
                   <span className="text-sm font-medium">Modification Requests</span>
-                  <span className="bg-amber-400 text-black px-3 py-1 rounded-lg font-black text-xs">{data?.pendingUpdatesCount || 0}</span>
+                  <span className="bg-amber-400 text-black px-3 py-1 rounded-lg font-black text-xs">{stats?.pendingUpdatesCount ?? 0}</span>
                 </div>
               </div>
             </div>
@@ -135,7 +135,7 @@ function Dashboard() {
         </div>
 
         <div className="lg:col-span-2">
-          <DashboardCalendar events={data?.activeEvents} />
+          <DashboardCalendar events={stats?.activeEvents} />
         </div>
       </div>
     </div>

@@ -61,8 +61,8 @@ public class EventUpdateRequest {
     private OrganizationType updatedOrganizationType;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "updated_event_status")
-    private EventStatus updatedEventStatus;
+    @Column(name = "updated_status")
+    private EventStatus updatedStatus;
 
     @Column(name = "update_reason", columnDefinition = "TEXT")
     private String updateReason;

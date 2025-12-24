@@ -23,6 +23,7 @@ public class DashboardDTO {
     private Long totalStudents;
     private Long totalOrganizers;
     private Long pendingProposalsCount;
+    private Long pendingUpdatesCount;
     private Long activeEventsCount;
 
     // Organizer Stats

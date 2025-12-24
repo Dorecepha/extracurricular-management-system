@@ -24,6 +24,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -98,7 +99,9 @@ public class ProposalServiceImpl implements ProposalService {
                     "PROPOSAL_APPROVED",
                     "PROPOSAL",
                     proposalID,
-                    "SUCCESS"
+                    "SUCCESS",
+                    null,
+                    null
             );
         }
         emailService.sendNotification(
@@ -139,6 +142,11 @@ public class ProposalServiceImpl implements ProposalService {
 
         if (proposalDTO.getEndTime().isBefore(proposalDTO.getStartTime())) {
             throw new RuntimeException("End time must be after start time");
+        }
+
+        LocalDateTime proposedStart = LocalDateTime.of(proposalDTO.getProposedDate(), proposalDTO.getStartTime());
+        if (Duration.between(LocalDateTime.now(), proposedStart).toHours() < 48) {
+            throw new IllegalStateException("Submission Policy: Proposals must be submitted at least 48 hours before the proposed start time.");
         }
 
         String attachmentsJson = fileStorageService.storeFiles(files);

@@ -80,7 +80,7 @@ public class EventUpdateServiceImpl implements EventUpdateRequestService {
                 .updatedVenue(dto.getUpdatedVenue())
                 .updatedCapacity(dto.getUpdatedCapacity())
                 .updatedOrganizationType(dto.getUpdatedOrganizationType())
-                .updatedEventStatus(dto.getUpdatedStatus())
+                .updatedStatus(dto.getUpdatedStatus())
                 .updateReason(dto.getUpdateReason())
                 .attachmentsJson(attachmentsJson)
                 .status(ApprovalStatus.PENDING)
@@ -134,15 +134,15 @@ public class EventUpdateServiceImpl implements EventUpdateRequestService {
         if (request.getUpdatedVenue() != null) event.setVenue(request.getUpdatedVenue());
         if (request.getUpdatedCapacity() != null) event.setCapacity(request.getUpdatedCapacity());
         if (request.getUpdatedOrganizationType() != null) event.setOrganizationType(request.getUpdatedOrganizationType());
-        if (request.getUpdatedEventStatus() != null) {
-            if (request.getUpdatedEventStatus() == EventStatus.CANCELLED
+        if (request.getUpdatedStatus() != null) {
+            if (request.getUpdatedStatus() == EventStatus.CANCELLED
                     && event.getStatus() != EventStatus.CANCELLED) {
                 registrationService.cancelRegistrationsForEvent(
                         event,
                         "Event cancelled by organizer request");
                 event.setStatus(EventStatus.CANCELLED);
             } else {
-                event.setStatus(request.getUpdatedEventStatus());
+                event.setStatus(request.getUpdatedStatus());
             }
         }
         event.setUpdatedAt(LocalDateTime.now());
@@ -159,7 +159,9 @@ public class EventUpdateServiceImpl implements EventUpdateRequestService {
                     "EVENT_UPDATE_APPROVED",
                     "EVENT",
                     event.getEventID(),
-                    "SUCCESS"
+                    "SUCCESS",
+                    null,
+                    null
             );
         }
 
@@ -244,7 +246,7 @@ public class EventUpdateServiceImpl implements EventUpdateRequestService {
                 .updatedVenue(request.getUpdatedVenue())
                 .updatedCapacity(request.getUpdatedCapacity())
                 .updatedOrganizationType(request.getUpdatedOrganizationType())
-                .updatedStatus(request.getUpdatedEventStatus())
+                .updatedStatus(request.getUpdatedStatus())
                 .updateReason(request.getUpdateReason())
                 .attachmentsJson(request.getAttachmentsJson())
                 .status(request.getStatus())

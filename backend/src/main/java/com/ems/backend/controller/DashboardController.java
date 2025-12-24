@@ -10,6 +10,7 @@ import com.ems.backend.entity.User;
 import com.ems.backend.enums.ApprovalStatus;
 import com.ems.backend.enums.EventStatus;
 import com.ems.backend.enums.UserRole;
+import com.ems.backend.repository.EventUpdateRequestRepository;
 import com.ems.backend.repository.EventRepository;
 import com.ems.backend.repository.ProposalRepository;
 import com.ems.backend.repository.RegistrationRepository;
@@ -37,6 +38,7 @@ public class DashboardController {
     private final EventRepository eventRepository;
     private final ProposalRepository proposalRepository;
     private final RegistrationRepository registrationRepository;
+    private final EventUpdateRequestRepository eventUpdateRequestRepository;
 
     @GetMapping("/stats")
     public ResponseEntity<Response<DashboardDTO>> getStats(
@@ -50,10 +52,13 @@ public class DashboardController {
         if (role == UserRole.ADMIN) {
             long organizerCount = userRepository.countByRole(UserRole.EVENT_ORGANIZER)
                     + userRepository.countByRole(UserRole.ORGANIZER);
+            long pendingProposals = proposalRepository.countByStatus(ApprovalStatus.PENDING);
+            long pendingUpdates = eventUpdateRequestRepository.findByStatus(ApprovalStatus.PENDING).size();
 
             builder.totalStudents(userRepository.countByRole(UserRole.STUDENT))
                    .totalOrganizers(organizerCount)
-                   .pendingProposalsCount(proposalRepository.countByStatus(ApprovalStatus.PENDING))
+                   .pendingProposalsCount(pendingProposals)
+                   .pendingUpdatesCount(pendingUpdates)
                    .activeEventsCount(eventRepository.countByStatus(EventStatus.UPCOMING))
                    .activeEvents(mapToEventDTOs(eventRepository.findAll()));
         } else if (role == UserRole.EVENT_ORGANIZER || role == UserRole.ORGANIZER) {

@@ -50,7 +50,13 @@ function RegistrationHistory() {
           registrations.map((reg) => (
             <div key={reg.registrationID} className="ems-card p-5 flex items-center justify-between group">
               <div className="space-y-1">
-                <h3 className="text-lg font-bold text-slate-900">{reg.eventTitle}</h3>
+                <div className="flex items-center gap-2">
+                  <h3 className="text-lg font-bold text-slate-900">{reg.eventTitle}</h3>
+                  {/* DNA: Display Confirmation Number */}
+                  <span className="px-2 py-0.5 bg-slate-100 text-slate-500 rounded text-[9px] font-mono border border-slate-200">
+                    {reg.confirmationNumber}
+                  </span>
+                </div>
                 <div className="flex gap-4 text-xs font-medium text-slate-500 uppercase tracking-wider">
                   <span>{formatDate(reg.eventDate)}</span>
                   <span>{reg.venue}</span>

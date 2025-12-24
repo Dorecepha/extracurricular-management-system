@@ -38,7 +38,7 @@ public class UserServiceImpl implements UserService {
         user.setAccountStatus(AccountStatus.valueOf(status));
         userRepository.save(user);
 
-        auditLogService.log(adminID, "admin@ems.com", "UPDATE_USER_STATUS", "USER", targetUserID, "SUCCESS");
+        auditLogService.log(adminID, "admin@ems.com", "UPDATE_USER_STATUS", "USER", targetUserID, "SUCCESS", null, null);
     }
 
     @Override
@@ -54,7 +54,7 @@ public class UserServiceImpl implements UserService {
         user.setRole(UserRole.valueOf(role));
         userRepository.save(user);
 
-        auditLogService.log(adminID, "admin@ems.com", "UPDATE_USER_ROLE", "USER", targetUserID, "SUCCESS");
+        auditLogService.log(adminID, "admin@ems.com", "UPDATE_USER_ROLE", "USER", targetUserID, "SUCCESS", null, null);
     }
 
     private UserDTO mapToDTO(User user) {
