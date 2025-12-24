@@ -36,8 +36,9 @@ function EventList() {
     onError: (err) => alert(err.message)
   });
 
-  const events = eventsData?.content || [];
-  const totalPages = eventsData?.totalPages || 0;
+  const eventsPage = eventsData ?? {};
+  const events = Array.isArray(eventsPage) ? eventsPage : eventsPage.content || [];
+  const totalPages = eventsPage?.page?.totalPages ?? eventsPage?.totalPages ?? 0;
 
   return (
     <div className="space-y-6">

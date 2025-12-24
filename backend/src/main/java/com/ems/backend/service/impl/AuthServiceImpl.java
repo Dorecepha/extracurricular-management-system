@@ -109,6 +109,8 @@ public class AuthServiceImpl implements AuthService {
                 .email(user.getEmail())
                 .role(user.getRole().name())
                 .id(user.getUserID())
+                .firstName(user.getFirstName())
+                .lastName(user.getLastName())
                 .build();
 
         // Wrap it in the Response

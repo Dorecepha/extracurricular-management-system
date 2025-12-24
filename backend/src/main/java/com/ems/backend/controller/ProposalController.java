@@ -4,6 +4,7 @@ import com.ems.backend.dto.ProposalDTO;
 import com.ems.backend.security.CustomUserDetails;
 import com.ems.backend.service.ProposalService;
 import com.ems.backend.wrappers.Response;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.Validator;
@@ -25,7 +26,9 @@ public class ProposalController {
 
     private final ProposalService proposalService;
     private final Validator validator;
-    private final ObjectMapper mapper = new ObjectMapper().findAndRegisterModules();
+    private final ObjectMapper objectMapper = new ObjectMapper()
+            .findAndRegisterModules()
+            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
     @GetMapping
     @PreAuthorize("hasRole('ORGANIZER')")
@@ -51,7 +54,7 @@ public class ProposalController {
             @RequestPart(value = "files", required = false) MultipartFile[] files,
             @AuthenticationPrincipal CustomUserDetails userDetails) throws Exception {
 
-        ProposalDTO proposalDTO = mapper.readValue(proposalJson, ProposalDTO.class);
+        ProposalDTO proposalDTO = objectMapper.readValue(proposalJson, ProposalDTO.class);
 
         var violations = validator.validate(proposalDTO);
         if (!violations.isEmpty()) {
@@ -77,7 +80,7 @@ public class ProposalController {
             @RequestPart("proposal") String proposalJson,
             @RequestPart(value = "files", required = false) MultipartFile[] files) throws Exception {
 
-        ProposalDTO dto = mapper.readValue(proposalJson, ProposalDTO.class);
+        ProposalDTO dto = objectMapper.readValue(proposalJson, ProposalDTO.class);
         ProposalDTO updated = proposalService.updateAndResubmit(proposalID, dto, files);
 
         Response<ProposalDTO> response = Response.<ProposalDTO>builder()

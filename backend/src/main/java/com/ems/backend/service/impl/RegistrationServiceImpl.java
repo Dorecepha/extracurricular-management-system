@@ -48,13 +48,13 @@ public class RegistrationServiceImpl implements RegistrationService {
         }
 
         if (registrationRepository.existsByStudent_UserIDAndEvent_EventID(studentID, eventID)) {
-            throw new IllegalStateException("You are already registered for this event.");
+            throw new IllegalStateException("Registration error: You are already signed up for this event.");
         }
 
         boolean hasOverlap = registrationRepository.existsByStudentAndDateOverlap(
                 studentID, event.getEventDate(), event.getStartTime(), event.getEndTime());
         if (hasOverlap) {
-            throw new IllegalStateException("Schedule conflict: You are already attending an event during this time.");
+            throw new IllegalStateException("Schedule conflict: You have another event registered during this time slot.");
         }
 
         Integer currentRegistrations = event.getCurrentRegistrations() == null
@@ -62,7 +62,7 @@ public class RegistrationServiceImpl implements RegistrationService {
                 : event.getCurrentRegistrations();
 
         if (currentRegistrations >= event.getCapacity()) {
-            throw new IllegalStateException("Event is full.");
+            throw new IllegalStateException("Event full: No seats remaining for this session.");
         }
 
         try {
