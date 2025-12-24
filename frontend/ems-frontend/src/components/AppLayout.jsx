@@ -32,16 +32,29 @@ function AppLayout() {
     { to: '/admin/proposals', label: 'Review Inbox', icon: ShieldCheck, roles: ['ADMIN'] },
     { to: '/admin/audit', label: 'Audit Trail', icon: ShieldCheck, roles: ['ADMIN'] },
   ];
+  const roleValue = user?.role || 'GUEST';
+  const roleLabel = roleValue.replace('EVENT_', '');
 
   return (
     <div className="flex min-h-screen bg-slate-50">
       {/* Sidebar - High Contrast Navy */}
       <aside className="w-64 bg-[#0f172a] text-slate-400 flex flex-col fixed h-full z-20 shadow-2xl">
         <div className="p-8">
-          <h1 className="text-white text-xl font-bold flex items-center gap-2 tracking-tight">
-            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-sm font-black">E</div>
-            University EMS
-          </h1>
+          <div className="flex items-center gap-3">
+            <img 
+              src="/logoIU.png" 
+              alt="University Logo" 
+              className="h-10 w-auto object-contain" 
+            />
+            <div className="flex flex-col">
+              <h1 className="text-white text-lg font-bold tracking-tight leading-tight">
+                International University
+              </h1>
+              <p className="text-slate-500 text-[15px] font-black uppercase tracking-widest leading-none">
+                EMS Portal
+              </p>
+            </div>
+          </div>
         </div>
 
         <nav className="flex-1 px-4 space-y-1">
@@ -64,15 +77,39 @@ function AppLayout() {
           ))}
         </nav>
 
-        <div className="p-6 border-t border-slate-800">
-          <button
-            onClick={() => {
-              clearAuthData();
-              navigate('/login');
-            }}
-            className="flex items-center gap-3 w-full px-4 py-3 rounded-xl text-sm font-medium text-slate-500 hover:text-rose-400 hover:bg-rose-500/5 transition-all"
+        <div className="p-4 mt-auto border-t border-slate-800 bg-slate-900/50">
+          <div className="flex items-center gap-3 px-2 py-3 bg-slate-800/50 rounded-2xl border border-slate-700/50 mb-4">
+            <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white font-bold shrink-0 shadow-lg shadow-blue-900/20">
+              {user?.firstName?.charAt(0)}
+              {user?.lastName?.charAt(0)}
+            </div>
+            
+            <div className="overflow-hidden">
+              <p className="text-sm font-bold text-white truncate leading-tight">
+                {user?.firstName} {user?.lastName}
+              </p>
+              <div className="flex items-center gap-1.5 mt-1">
+                <span
+                  className={`px-1.5 py-0.5 rounded text-[8px] font-black uppercase tracking-widest ${
+                    roleValue === 'ADMIN'
+                      ? 'bg-amber-400 text-black'
+                      : roleValue === 'ORGANIZER'
+                      ? 'bg-indigo-500 text-white'
+                      : 'bg-emerald-500 text-white'
+                  }`}
+                >
+                  {roleLabel}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <button 
+            onClick={() => { clearAuthData(); navigate('/login'); }}
+            className="flex items-center gap-3 w-full px-4 py-2.5 rounded-xl text-xs font-bold text-slate-500 hover:text-rose-400 hover:bg-rose-500/5 transition-all group"
           >
-            <LogOut size={18} /> Logout
+            <LogOut size={16} className="group-hover:-translate-x-1 transition-transform" />
+            Sign Out
           </button>
         </div>
       </aside>

@@ -29,7 +29,7 @@ function LoginPage() {
     setServerError('');
     try {
       const payload = await authApi.login(values);
-      const { token, role, user, id, userID } = payload || {};
+      const { token, role, user, id, userID, firstName, lastName, email } = payload || {};
       if (!token) {
         setServerError('Login succeeded but no token was returned.');
         return;
@@ -37,11 +37,18 @@ function LoginPage() {
 
       localStorage.clear();
       const normalizedUser = user
-        ? { ...user, userID: user.userID || user.id }
-        : { userID: userID || id, role };
+        ? {
+            ...user,
+            userID: user.userID || user.id || userID || id,
+            firstName: user.firstName ?? firstName,
+            lastName: user.lastName ?? lastName,
+            email: user.email ?? email,
+            role: user.role ?? role,
+          }
+        : { userID: userID || id, role, firstName, lastName, email };
 
       localStorage.setItem('token', token);
-      localStorage.setItem('userRole', role || normalizedUser?.role || 'USER'); 
+      localStorage.setItem('userRole', normalizedUser?.role || role || 'USER');
       localStorage.setItem('user', JSON.stringify(normalizedUser));
       
       navigate(from, { replace: true });
@@ -52,13 +59,22 @@ function LoginPage() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-slate-50 p-4">
-      <div className="w-full max-w-md overflow-hidden rounded-2xl bg-white shadow-xl">
-        <div className="bg-[#1f5f89] p-8 text-center">
-          <h1 className="text-3xl font-bold text-white">Welcome Back</h1>
-          <p className="mt-2 text-blue-100">Extracurricular Management System</p>
+      <div className="bg-white w-full max-w-md rounded-[40px] border border-slate-200 shadow-2xl overflow-hidden">
+        <div className="p-10 text-center space-y-4">
+          <img 
+            src="/logoIU.png" 
+            alt="University Logo" 
+            className="h-16 w-auto mx-auto object-contain mb-2" 
+          />
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight text-slate-900">EMS Portal Login</h1>
+            <p className="text-slate-500 text-xs font-medium uppercase tracking-widest mt-1">
+              Extracurricular Management System
+            </p>
+          </div>
         </div>
 
-        <div className="p-8">
+        <div className="px-10 pb-10">
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6" noValidate>
             <div className="space-y-2">
               <label htmlFor="email" className="block text-sm font-medium text-slate-700">Email</label>

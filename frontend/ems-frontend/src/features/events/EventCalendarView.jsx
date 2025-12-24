@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, startOfWeek, endOfWeek, addMonths, subMonths } from 'date-fns';
-import { ChevronLeft, ChevronRight, Users, CheckCircle, X, MapPin, Clock } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Users, CheckCircle, X, MapPin, Clock, AlertCircle } from 'lucide-react';
 import { eventApi } from './api';
 import { safeParseUser } from '../../lib/safeParse';
 
@@ -12,6 +12,7 @@ function EventCalendarView() {
   const user = safeParseUser();
   const [viewDate, setViewDate] = useState(new Date());
   const [selectedEvent, setSelectedEvent] = useState(null);
+  const [registrationError, setRegistrationError] = useState('');
   const isEventFull = selectedEvent ? selectedEvent.currentRegistrations >= selectedEvent.capacity : false;
 
   const { data: eventsPage, isLoading } = useQuery({
@@ -25,8 +26,12 @@ function EventCalendarView() {
     mutationFn: (id) => eventApi.registerForEvent(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['events-calendar'] });
+      setRegistrationError('');
       setSelectedEvent(null);
-      alert('Registration Successful!');
+    },
+    onError: (err) => {
+      // Show the business-logic message from the backend
+      setRegistrationError(err.message);
     }
   });
 
@@ -79,7 +84,10 @@ function EventCalendarView() {
                   {dayEvents.map((e) => (
                     <button
                       key={e.eventID}
-                      onClick={() => setSelectedEvent(e)}
+                      onClick={() => {
+                        setRegistrationError('');
+                        setSelectedEvent(e);
+                      }}
                       className="w-full text-left text-[10px] p-2 rounded-xl border bg-white shadow-sm border-slate-200 hover:border-blue-400 hover:shadow-md transition-all"
                     >
                       <p className="font-black text-slate-800 truncate uppercase tracking-wide">{e.title}</p>
@@ -100,7 +108,15 @@ function EventCalendarView() {
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-6">
           <div className="bg-white w-full max-w-xl rounded-[40px] shadow-2xl overflow-hidden animate-in zoom-in duration-200">
             <div className="bg-[#1f5f89] p-8 text-white relative">
-              <button onClick={() => setSelectedEvent(null)} className="absolute right-6 top-6 hover:bg-white/20 p-2 rounded-full"><X /></button>
+              <button
+                onClick={() => {
+                  setRegistrationError('');
+                  setSelectedEvent(null);
+                }}
+                className="absolute right-6 top-6 hover:bg-white/20 p-2 rounded-full"
+              >
+                <X />
+              </button>
               <span className="bg-white/20 px-2 py-1 rounded text-[10px] font-black uppercase mb-2 inline-block">Event Details</span>
               <h2 className="text-3xl font-black uppercase leading-tight">{selectedEvent.title}</h2>
               <div className="flex gap-4 mt-4 text-sm font-medium text-blue-100">
@@ -113,6 +129,17 @@ function EventCalendarView() {
               <div className="space-y-2">
                 <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest">About this event</h4>
                 <p className="text-slate-600 font-medium leading-relaxed italic">"{selectedEvent.description}"</p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 text-sm font-bold text-slate-700">
+                <div className="p-3 bg-slate-50 rounded-2xl border border-slate-100">
+                  <p className="text-[11px] uppercase tracking-widest text-slate-400 font-black">Capacity</p>
+                  <p className="text-lg">{selectedEvent.capacity ?? 0}</p>
+                </div>
+                <div className="p-3 bg-slate-50 rounded-2xl border border-slate-100">
+                  <p className="text-[11px] uppercase tracking-widest text-slate-400 font-black">Registered</p>
+                  <p className="text-lg">{selectedEvent.currentRegistrations ?? 0}</p>
+                </div>
               </div>
 
               <div className="pt-6 border-t border-slate-100">
@@ -128,13 +155,24 @@ function EventCalendarView() {
                       <CheckCircle size={20} /> Already Registered
                     </div>
                   ) : (
-                    <button
-                      onClick={() => registerMutation.mutate(selectedEvent.eventID)}
-                      disabled={registerMutation.isPending || isEventFull}
-                      className="w-full ems-btn-primary uppercase tracking-widest py-4"
-                    >
-                      {isEventFull ? 'Event Full' : registerMutation.isPending ? 'Registering...' : 'Confirm My Registration'}
-                    </button>
+                    <div className="space-y-3">
+                      {registrationError && (
+                        <div className="bg-amber-50 border border-amber-200 p-4 rounded-xl flex items-start gap-3 text-amber-800 text-xs font-bold animate-shake">
+                          <AlertCircle size={18} className="shrink-0" />
+                          <span>{registrationError}</span>
+                        </div>
+                      )}
+                      <button
+                        onClick={() => {
+                          setRegistrationError('');
+                          registerMutation.mutate(selectedEvent.eventID);
+                        }}
+                        disabled={registerMutation.isPending || isEventFull}
+                        className="w-full ems-btn-primary uppercase tracking-widest py-4"
+                      >
+                        {isEventFull ? 'Event Full' : registerMutation.isPending ? 'Registering...' : 'Confirm My Registration'}
+                      </button>
+                    </div>
                   )
                 )}
 

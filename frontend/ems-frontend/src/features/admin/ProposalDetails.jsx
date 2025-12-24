@@ -65,7 +65,8 @@ function ProposalDetails() {
 
   const handleOpenFile = (file) => {
     if (file?.path) {
-      window.open(`http://localhost:8080/api/${file.path}`, '_blank', 'noopener');
+      const safePath = encodeURI(file.path);
+      window.open(`http://localhost:8080/api/${safePath}`, '_blank', 'noopener');
       return;
     }
     if (file?.dataUrl) {
@@ -74,10 +75,6 @@ function ProposalDetails() {
     }
     if (file?.url) {
       window.open(file.url, '_blank', 'noopener');
-      return;
-    }
-    if (file?.path) {
-      window.open(`http://localhost:8080/api/${file.path}`, '_blank', 'noopener');
       return;
     }
     alert('No file data available to preview.');

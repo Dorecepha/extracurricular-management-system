@@ -8,6 +8,7 @@ export default defineConfig({
     react(),
     tailwindcss(), // This replaces the need for postcss.config.js
   ],
+  publicDir: 'src/public',
   server: {
     watch: {
       usePolling: true, // Essential for Dropbox/Windows stability

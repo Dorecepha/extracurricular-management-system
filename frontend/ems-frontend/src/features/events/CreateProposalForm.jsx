@@ -89,7 +89,8 @@ function CreateProposalForm() {
     };
 
     const data = new FormData();
-    data.append('proposal', new Blob([JSON.stringify(payload)], { type: 'application/json' }));
+    const proposalBlob = new Blob([JSON.stringify(payload)], { type: 'application/json' });
+    data.append('proposal', proposalBlob);
 
     fileList.forEach((file) => {
       data.append('files', file.raw);

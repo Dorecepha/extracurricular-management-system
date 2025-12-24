@@ -95,14 +95,22 @@ function Dashboard() {
           {user?.role === 'STUDENT' && (
             <div className="ems-card p-6">
               <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Participation Summary</h3>
-              <div className="flex items-center gap-4">
-                <div className="p-4 bg-blue-50 text-blue-600 rounded-2xl">
-                  <Users />
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex items-center gap-4">
+                  <div className="p-4 bg-blue-50 text-blue-600 rounded-2xl">
+                    <Users />
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold text-slate-900">{data?.myTotalRegistrations ?? 0}</p>
+                    <p className="text-xs text-slate-500 font-medium uppercase">Total Bookings</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-2xl font-bold text-slate-900">{data?.myTotalRegistrations ?? 0}</p>
-                  <p className="text-xs text-slate-500 font-medium uppercase">Total Bookings</p>
-                </div>
+                <button
+                  onClick={() => navigate('/my-events')}
+                  className="px-4 py-2 text-xs font-bold uppercase tracking-widest text-blue-700 bg-blue-50 border border-blue-100 rounded-xl hover:bg-blue-100 transition"
+                >
+                  View Past Registrations
+                </button>
               </div>
             </div>
           )}

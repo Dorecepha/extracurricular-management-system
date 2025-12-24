@@ -17,7 +17,12 @@ export const safeParseUser = () => {
     if (parsed && parsed.id && !parsed.userID) {
       parsed.userID = parsed.id;
     }
-    return parsed;
+    return {
+      ...parsed,
+      firstName: parsed?.firstName || 'User',
+      lastName: parsed?.lastName || '',
+      role: parsed?.role || 'GUEST',
+    };
   } catch (err) {
     console.warn('safeParseUser error', err);
     return null;
