@@ -16,7 +16,7 @@ public class OutlookEmailAdapter implements EmailService {
     private final JavaMailSender mailSender;
 
     @Override
-    @Async // DNA: NFR-082 Compliance
+    @Async 
     public void sendNotification(String to, String subject, String body) {
         try {
             SimpleMailMessage message = new SimpleMailMessage();

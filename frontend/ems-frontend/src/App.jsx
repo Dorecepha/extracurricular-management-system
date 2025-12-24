@@ -45,7 +45,7 @@ function App() {
               <Route path="/admin/updates" element={<UpdateReviewList />} />
               <Route path="/admin/updates/:requestID" element={<UpdateReviewDetails />} />
               <Route path="/admin/audit" element={<AuditLogs />} />
-              <Route path="/admin/users" element={<ManageAccounts />} />
+              <Route path="/admin/accounts" element={<ManageAccounts />} />
             </Route>
           </Route>
 
