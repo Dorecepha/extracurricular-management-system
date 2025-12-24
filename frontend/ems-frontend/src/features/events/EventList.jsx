@@ -98,7 +98,7 @@ function EventList() {
                         disabled={registerMutation.isPending || isFull || isRegistered}
                         className={`px-3 py-2 rounded-lg text-xs font-bold uppercase tracking-wide transition ${
                           isRegistered
-                            ? 'bg-green-50 text-green-700 border border-green-200 cursor-not-allowed'
+                            ? 'bg-emerald-50 text-emerald-700 border border-emerald-100 cursor-not-allowed'
                             : isFull
                               ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
                               : 'bg-blue-600 text-white hover:bg-blue-700'
@@ -106,7 +106,7 @@ function EventList() {
                       >
                         {isRegistered ? (
                           <span className="flex items-center gap-1">
-                            <CheckCircle size={14} /> Registered
+                            <CheckCircle size={14} className="text-emerald-600" /> Registered
                           </span>
                         ) : isFull ? (
                           'Full'

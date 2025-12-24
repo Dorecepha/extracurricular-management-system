@@ -54,7 +54,7 @@ function UpdateReviewDetails() {
                   return (
                     <div key={field} className="p-5 bg-slate-50 rounded-2xl border border-slate-100">
                       <p className="text-[10px] font-black text-slate-400 uppercase mb-2">{field}</p>
-                      <p className="text-green-600 font-bold">{req?.[key] ?? 'No Change'}</p>
+                      <p className="text-emerald-600 font-bold">{req?.[key] ?? 'No Change'}</p>
                     </div>
                   );
                 })}
@@ -62,7 +62,7 @@ function UpdateReviewDetails() {
           </div>
 
           <div className="pt-10 border-t flex gap-4">
-            <button onClick={() => setModalMode('APPROVE')} className="flex-1 bg-green-600 text-white py-4 rounded-2xl font-bold uppercase tracking-widest text-xs hover:bg-green-700 transition-all">Approve Changes</button>
+            <button onClick={() => setModalMode('APPROVE')} className="flex-1 bg-emerald-600 text-white py-4 rounded-2xl font-bold uppercase tracking-widest text-xs hover:bg-emerald-700 transition-all">Approve Changes</button>
             <button onClick={() => setModalMode('REJECT')} className="flex-1 bg-red-600 text-white py-4 rounded-2xl font-bold uppercase tracking-widest text-xs hover:bg-red-700 transition-all">Reject Changes</button>
           </div>
         </div>
@@ -105,7 +105,7 @@ function UpdateReviewDetails() {
               <button 
                 onClick={() => mutation.mutate()}
                 disabled={mutation.isPending || (modalMode === 'REJECT' && !reason)}
-                className={`flex-1 py-4 rounded-xl text-white font-black text-xs uppercase tracking-widest shadow-lg ${modalMode === 'APPROVE' ? 'bg-green-600 shadow-green-900/20' : 'bg-red-600 shadow-red-900/20'}`}
+                className={`flex-1 py-4 rounded-xl text-white font-black text-xs uppercase tracking-widest shadow-lg ${modalMode === 'APPROVE' ? 'bg-emerald-600 shadow-emerald-900/20' : 'bg-red-600 shadow-red-900/20'}`}
               >
                 {mutation.isPending ? 'Processing...' : `Confirm ${modalMode}`}
               </button>

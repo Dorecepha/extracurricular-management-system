@@ -10,6 +10,8 @@
     --border: #e2e8f0; /* Slate 200 */
     --text-main: #0f172a; /* Slate 900 */
     --text-muted: #64748b; /* Slate 500 */
+    --success: #059669; /* Emerald 600 */
+    --success-bg: #ecfdf5; /* Emerald 50 */
   }
 
   body {
