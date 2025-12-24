@@ -65,7 +65,10 @@ function ProposalDetails() {
 
   const handleOpenFile = (file) => {
     if (file?.path) {
-      window.open(`http://localhost:8080/api/${file.path}`, '_blank', 'noopener');
+      const apiBase = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api';
+      const safePath = encodeURI(file.path);
+      const finalUrl = `${apiBase.replace(/\/$/, '')}/${safePath.replace(/^\//, '')}`;
+      window.open(finalUrl, '_blank', 'noopener');
       return;
     }
     if (file?.dataUrl) {
@@ -74,10 +77,6 @@ function ProposalDetails() {
     }
     if (file?.url) {
       window.open(file.url, '_blank', 'noopener');
-      return;
-    }
-    if (file?.path) {
-      window.open(`http://localhost:8080/api/${file.path}`, '_blank', 'noopener');
       return;
     }
     alert('No file data available to preview.');

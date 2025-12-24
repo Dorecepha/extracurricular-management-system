@@ -10,7 +10,7 @@ const EventCard = ({ event }) => {
       <div className="h-1.5 w-full bg-[#1f5f89]" />
       <div className="p-5">
         <div className="flex justify-between items-start mb-3">
-          <span className="bg-green-100 text-green-700 text-[10px] font-black px-2 py-0.5 rounded uppercase">
+          <span className="bg-emerald-50 text-emerald-700 border border-emerald-100 text-[10px] font-black px-2 py-0.5 rounded uppercase">
             Approved
           </span>
           <span className="text-slate-400 text-[10px] font-mono">#{eventID}</span>

@@ -4,17 +4,17 @@ import { useNavigate } from 'react-router-dom';
 import { dashboardApi } from './dashboardApi';
 import { safeParseUser } from '../../lib/safeParse';
 import DashboardCalendar from './components/DashboardCalendar';
-import { Users, AlertCircle, ArrowRight, Loader2, CheckCircle, X, Bookmark } from 'lucide-react';
+import { Users, AlertCircle, ArrowRight, Loader2, CheckCircle, X, Bookmark, ShieldCheck } from 'lucide-react';
 
 function Dashboard() {
   const navigate = useNavigate();
   const user = safeParseUser();
   const [showSuccess, setShowSuccess] = useState(true);
-  const { data, isLoading } = useQuery({
+  const { data: stats, isLoading } = useQuery({
     queryKey: ['dashboard-stats'],
     queryFn: dashboardApi.getStats
   });
-  const hasResolution = data?.myProposals?.some((p) => p.status !== 'PENDING');
+  const hasResolution = stats?.myProposals?.some((p) => p.status !== 'PENDING');
 
   if (isLoading) {
     return (
@@ -63,7 +63,7 @@ function Dashboard() {
                 </div>
               </div>
 
-              {showSuccess && data?.myProposals?.some((p) => p.status === 'APPROVED') && (
+              {showSuccess && stats?.myProposals?.some((p) => p.status === 'APPROVED') && (
                 <div className="p-4 bg-emerald-50 border border-emerald-100 rounded-xl flex justify-between items-center animate-in slide-in-from-top">
                   <div className="flex gap-3 items-center text-emerald-700 text-xs font-bold">
                     <CheckCircle size={16} /> Application Approved! Check Managed Events.
@@ -74,7 +74,7 @@ function Dashboard() {
                 </div>
               )}
 
-              {data?.myProposals
+              {stats?.myProposals
                 ?.filter((p) => p.status === 'REJECTED')
                 .map((p) => (
                   <div key={p.proposalID} className="p-4 bg-rose-50 border border-rose-100 rounded-xl space-y-2">
@@ -95,30 +95,47 @@ function Dashboard() {
           {user?.role === 'STUDENT' && (
             <div className="ems-card p-6">
               <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Participation Summary</h3>
-              <div className="flex items-center gap-4">
-                <div className="p-4 bg-blue-50 text-blue-600 rounded-2xl">
-                  <Users />
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex items-center gap-4">
+                  <div className="p-4 bg-blue-50 text-blue-600 rounded-2xl">
+                    <Users />
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold text-slate-900">{stats?.myTotalRegistrations ?? 0}</p>
+                    <p className="text-xs text-slate-500 font-medium uppercase">Total Bookings</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-2xl font-bold text-slate-900">{data?.myTotalRegistrations ?? 0}</p>
-                  <p className="text-xs text-slate-500 font-medium uppercase">Total Bookings</p>
-                </div>
+                <button
+                  onClick={() => navigate('/my-events')}
+                  className="px-4 py-2 text-xs font-bold uppercase tracking-widest text-blue-700 bg-blue-50 border border-blue-100 rounded-xl hover:bg-blue-100 transition"
+                >
+                  View Past Registrations
+                </button>
               </div>
             </div>
           )}
 
           {user?.role === 'ADMIN' && (
-            <div className="ems-card p-6 bg-blue-600 text-white border-none">
-              <h3 className="font-bold uppercase text-xs tracking-widest text-blue-200 mb-2">Admin Notice</h3>
-              <p className="text-sm font-medium leading-relaxed italic">
-                "You have {data?.pendingProposalsCount ?? 0} pending approvals in the inbox."
-              </p>
+            <div className="ems-card p-8 bg-indigo-900 text-white border-none shadow-xl">
+              <h3 className="font-bold text-xs uppercase tracking-widest text-indigo-300 mb-4 flex items-center gap-2">
+                <ShieldCheck size={16}/> Admin Action Center
+              </h3>
+              <div className="space-y-4">
+                <div className="p-4 bg-white/10 rounded-2xl flex justify-between items-center">
+                  <span className="text-sm font-medium">New Proposals</span>
+                  <span className="bg-white text-indigo-900 px-3 py-1 rounded-lg font-black text-xs">{stats?.pendingProposalsCount ?? 0}</span>
+                </div>
+                <div className="p-4 bg-white/10 rounded-2xl flex justify-between items-center">
+                  <span className="text-sm font-medium">Modification Requests</span>
+                  <span className="bg-amber-400 text-black px-3 py-1 rounded-lg font-black text-xs">{stats?.pendingUpdatesCount ?? 0}</span>
+                </div>
+              </div>
             </div>
           )}
         </div>
 
         <div className="lg:col-span-2">
-          <DashboardCalendar events={data?.activeEvents} />
+          <DashboardCalendar events={stats?.activeEvents} />
         </div>
       </div>
     </div>

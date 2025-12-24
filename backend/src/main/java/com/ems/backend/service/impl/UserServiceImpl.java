@@ -29,7 +29,7 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public void updateUserStatus(Long targetUserID, String status, Long adminID) {
         if (targetUserID.equals(adminID)) {
-            throw new IllegalStateException("Security Violation: You cannot modify your own account status.");
+            throw new IllegalStateException("Security violation: You cannot modify your own administrative status.");
         }
 
         User user = userRepository.findById(targetUserID)
@@ -38,14 +38,14 @@ public class UserServiceImpl implements UserService {
         user.setAccountStatus(AccountStatus.valueOf(status));
         userRepository.save(user);
 
-        auditLogService.log(adminID, "admin@ems.com", "UPDATE_USER_STATUS", "USER", targetUserID, "SUCCESS");
+        auditLogService.log(adminID, "admin@ems.com", "UPDATE_USER_STATUS", "USER", targetUserID, "SUCCESS", null, null);
     }
 
     @Override
     @Transactional
     public void updateUserRole(Long targetUserID, String role, Long adminID) {
         if (targetUserID.equals(adminID)) {
-            throw new IllegalStateException("Security Violation: You cannot change your own administrative role.");
+            throw new IllegalStateException("Security violation: You cannot modify your own administrative status.");
         }
 
         User user = userRepository.findById(targetUserID)
@@ -54,7 +54,7 @@ public class UserServiceImpl implements UserService {
         user.setRole(UserRole.valueOf(role));
         userRepository.save(user);
 
-        auditLogService.log(adminID, "admin@ems.com", "UPDATE_USER_ROLE", "USER", targetUserID, "SUCCESS");
+        auditLogService.log(adminID, "admin@ems.com", "UPDATE_USER_ROLE", "USER", targetUserID, "SUCCESS", null, null);
     }
 
     private UserDTO mapToDTO(User user) {

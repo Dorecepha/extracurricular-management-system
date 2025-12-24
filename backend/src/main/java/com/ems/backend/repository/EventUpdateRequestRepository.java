@@ -12,4 +12,5 @@ public interface EventUpdateRequestRepository extends JpaRepository<EventUpdateR
     List<EventUpdateRequest> findByStatus(ApprovalStatus status);
     List<EventUpdateRequest> findByEvent_EventIDOrderBySubmittedAtDesc(Long eventId);
     List<EventUpdateRequest> findByRequestedBy_UserID(Long organizerId);
+    long countByStatus(ApprovalStatus status);
 }

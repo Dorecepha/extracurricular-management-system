@@ -26,20 +26,12 @@ api.interceptors.response.use(
     return response;
   },
   (error) => {
-    let message = 'Something went wrong. Please try again later.';
-
-    // Handle Backend Wrapper Error format if exists
-    if (error.response?.data) {
-      const data = error.response.data;
-      if (typeof data === 'string') {
-        message = data;
-      } else if (typeof data === 'object') {
-        // Look for standard error fields
-        message = data.message || data.error || message;
-      }
-    } else if (error.message) {
-      message = error.message;
-    }
+    // Extract the message from our Backend Response Wrapper
+    const data = error.response?.data;
+    const message =
+      (typeof data === 'string' && data) ||
+      (typeof data === 'object' && data?.message) ||
+      'An unexpected error occurred.';
 
     return Promise.reject(new Error(message));
   }

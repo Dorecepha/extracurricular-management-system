@@ -1,7 +1,7 @@
 import React from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { updateApi } from '../events/updateApi';
-import { CheckCircle, XCircle, Loader2, ArrowRight } from 'lucide-react';
+import { Loader2, RefreshCcw, Inbox } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 function UpdateReviewList() {
@@ -24,36 +24,59 @@ function UpdateReviewList() {
 
   return (
     <div className="max-w-5xl mx-auto space-y-8">
-      <h1 className="text-4xl font-black text-slate-900 uppercase italic">Update Requests</h1>
+      <header className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Update Requests</h1>
+          <p className="text-slate-500 text-sm font-medium">{requests?.length ?? 0} pending modification reviews</p>
+        </div>
+        <span className="px-3 py-1 rounded-full bg-amber-50 text-amber-700 border border-amber-100 text-[11px] font-semibold flex items-center gap-2">
+          <RefreshCcw size={12}/> Modification Queue
+        </span>
+      </header>
       
       <div className="grid gap-6">
         {!requests?.length ? (
-          <div className="bg-white rounded-[40px] p-20 text-center text-slate-400 font-bold border-2 border-dashed">No pending modifications.</div>
+          <div className="bg-white rounded-[32px] p-16 text-center text-slate-400 font-bold border-2 border-dashed border-slate-200">
+            <Inbox className="mx-auto mb-3 opacity-30" size={40}/>
+            No pending modifications.
+          </div>
         ) : (
           requests.map((req) => (
-            <div key={req.requestID} className="bg-white border-2 border-slate-100 rounded-[32px] p-8 space-y-6 shadow-sm">
-              <div className="flex justify-between items-start">
-                <div>
-                   <h3 className="text-2xl font-black text-slate-900">Event Modification Request</h3>
-                   <p className="text-[#1f5f89] font-bold">Reason: {req.updateReason || req.reason || 'N/A'}</p>
+            <div key={req.requestID} className="ems-card p-6 space-y-5">
+              <div className="flex justify-between items-start gap-4">
+                <div className="space-y-2">
+                   <div className="flex items-center gap-2 flex-wrap">
+                     <span className="px-3 py-1 rounded-full bg-amber-50 text-amber-700 border border-amber-100 text-[11px] font-bold flex items-center gap-1.5">
+                       <RefreshCcw size={12}/> Modification Request
+                     </span>
+                     <span className="text-[11px] font-semibold text-slate-400">ID #{req.requestID}</span>
+                   </div>
+                   <h3 className="text-xl font-bold text-slate-900 leading-snug">{req.updatedTitle || req.originalTitle || 'Event Modification Request'}</h3>
+                   <div className="px-3 py-2 bg-amber-50 text-amber-700 border border-amber-100 rounded-xl text-sm font-semibold">
+                     Reason: {req.updateReason || req.reason || 'N/A'}
+                   </div>
                 </div>
-                <div className="flex gap-2">
-                  <button onClick={() => approveMutation.mutate(req.requestID)} className="bg-green-600 text-white px-6 py-2 rounded-xl font-bold text-xs uppercase tracking-widest">Approve</button>
-                  <button onClick={() => navigate(`/admin/updates/${req.requestID}`)} className="bg-white border px-6 py-2 rounded-xl font-bold text-xs uppercase tracking-widest text-slate-600">Review</button>
+                <div className="flex gap-2 shrink-0">
+                  <button onClick={() => navigate(`/admin/updates/${req.requestID}`)} className="ems-btn-primary px-4 py-2 text-xs">
+                    Review
+                  </button>
+                  <button onClick={() => approveMutation.mutate(req.requestID)} className="px-4 py-2 bg-emerald-600 text-white rounded-xl text-xs font-bold hover:bg-emerald-700 transition">
+                    Approve
+                  </button>
                 </div>
               </div>
 
               {/* Diff View */}
-              <div className="grid grid-cols-2 gap-4 bg-slate-50 p-6 rounded-2xl border border-slate-100">
-                <div className="space-y-1">
-                  <p className="text-[10px] font-black text-slate-400 uppercase">Field</p>
-                  <p className="font-bold text-slate-500">Title:</p>
-                  <p className="font-bold text-slate-500">Venue:</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-slate-50 p-6 rounded-2xl border border-slate-100">
+                <div className="space-y-2">
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Field</p>
+                  <p className="font-semibold text-slate-600">Title</p>
+                  <p className="font-semibold text-slate-600">Venue</p>
                 </div>
-                <div className="space-y-1">
-                  <p className="text-[10px] font-black text-slate-400 uppercase">Proposed Change</p>
-                  <p className="font-bold text-green-600">{req.updatedTitle}</p>
-                  <p className="font-bold text-green-600">{req.updatedVenue}</p>
+                <div className="space-y-2">
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Proposed Change</p>
+                  <p className="font-semibold text-emerald-700">{req.updatedTitle}</p>
+                  <p className="font-semibold text-emerald-700">{req.updatedVenue}</p>
                 </div>
               </div>
             </div>

@@ -2,6 +2,7 @@ package com.ems.backend.service.email.impl;
 
 import com.ems.backend.service.email.EmailService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.scheduling.annotation.Async;
@@ -9,20 +10,26 @@ import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class OutlookEmailAdapter implements EmailService {
-    private final JavaMailSender mailSender; // The "Adaptee" (Spring Mail)
+
+    private final JavaMailSender mailSender;
 
     @Override
-    @Async // Prevents server timeout when notifying many participants
+    @Async // DNA: NFR-082 Compliance
     public void sendNotification(String to, String subject, String body) {
-        SimpleMailMessage message = new SimpleMailMessage();
-        message.setFrom("ems-portal@university.edu");
-        message.setTo(to);
-        message.setSubject("[EMS] " + subject);
-        message.setText(body);
-        // In dev mode, we print to console; in prod, mailSender.send(message) is called.
-        System.out.println("ADAPTER: Sending Email to " + to + " via Outlook System...");
-        mailSender.send(message);
+        try {
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setFrom("ems-portal@university.edu");
+            message.setTo(to);
+            message.setSubject("[EMS] " + subject);
+            message.setText(body);
+
+            mailSender.send(message);
+            log.info("Email successfully sent to: {}", to);
+        } catch (Exception e) {
+            // DNA: LOG failure but do not throw exception to avoid rolling back DB
+            log.error("Failed to send email to {}: {}", to, e.getMessage());
+        }
     }
-    
 }

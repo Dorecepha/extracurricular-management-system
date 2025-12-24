@@ -13,11 +13,13 @@ import com.ems.backend.repository.EventRepository;
 import com.ems.backend.repository.RegistrationRepository;
 import com.ems.backend.repository.UserRepository;
 import com.ems.backend.service.RegistrationService;
+import com.ems.backend.service.email.EmailService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
@@ -30,6 +32,7 @@ public class RegistrationServiceImpl implements RegistrationService {
     private final RegistrationRepository registrationRepository;
     private final EventRepository eventRepository;
     private final UserRepository userRepository;
+    private final EmailService emailService;
 
     @Override
     @Transactional
@@ -48,13 +51,13 @@ public class RegistrationServiceImpl implements RegistrationService {
         }
 
         if (registrationRepository.existsByStudent_UserIDAndEvent_EventID(studentID, eventID)) {
-            throw new IllegalStateException("You are already registered for this event.");
+            throw new IllegalStateException("Registration error: You are already signed up for this event.");
         }
 
         boolean hasOverlap = registrationRepository.existsByStudentAndDateOverlap(
                 studentID, event.getEventDate(), event.getStartTime(), event.getEndTime());
         if (hasOverlap) {
-            throw new IllegalStateException("Schedule conflict: You are already attending an event during this time.");
+            throw new IllegalStateException("Schedule conflict: You have another event registered during this time slot.");
         }
 
         Integer currentRegistrations = event.getCurrentRegistrations() == null
@@ -62,21 +65,40 @@ public class RegistrationServiceImpl implements RegistrationService {
                 : event.getCurrentRegistrations();
 
         if (currentRegistrations >= event.getCapacity()) {
-            throw new IllegalStateException("Event is full.");
+            throw new IllegalStateException("Event full: No seats remaining for this session.");
         }
 
         try {
             event.setCurrentRegistrations(currentRegistrations + 1);
             eventRepository.saveAndFlush(event);
 
+            String confirmationCode = "REG-" + java.util.UUID.randomUUID()
+                    .toString()
+                    .substring(0, 8)
+                    .toUpperCase();
+
             Registration registration = Registration.builder()
                     .event(event)
                     .student(student)
                     .status(RegistrationStatus.CONFIRMED)
+                    .confirmationNumber(confirmationCode)
                     .registeredAt(LocalDateTime.now())
                     .build();
 
-            registrationRepository.save(registration);
+            Registration savedRegistration = registrationRepository.save(registration);
+
+            String emailBody = String.format(
+                    "Hello %s,%n%nYour registration for '%s' is confirmed.%n" +
+                            "Confirmation Number: %s%n" +
+                            "Venue: %s%nDate: %s%n%nSee you there!",
+                    student.getFirstName(),
+                    event.getTitle(),
+                    savedRegistration.getConfirmationNumber(),
+                    event.getVenue(),
+                    event.getEventDate().toString()
+            );
+
+            emailService.sendNotification(student.getEmail(), "Registration Confirmed", emailBody);
         } catch (ObjectOptimisticLockingFailureException e) {
             throw new IllegalStateException("Registration failed due to high demand. Please try again.");
         }
@@ -112,6 +134,11 @@ public class RegistrationServiceImpl implements RegistrationService {
         }
 
         Event event = registration.getEvent();
+        LocalDateTime eventStart = LocalDateTime.of(event.getEventDate(), event.getStartTime());
+        if (Duration.between(LocalDateTime.now(), eventStart).toHours() < 24) {
+            throw new IllegalStateException("Cancellation Policy: You must provide at least 24 hours notice to cancel your registration.");
+        }
+
         Integer currentRegistrations = event.getCurrentRegistrations() == null
                 ? 0
                 : event.getCurrentRegistrations();

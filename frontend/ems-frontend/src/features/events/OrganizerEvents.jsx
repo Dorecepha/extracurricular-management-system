@@ -2,11 +2,13 @@ import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { eventApi } from './api';
-import { Users, AlertTriangle, X, Loader2, Plus } from 'lucide-react';
+import { Users, AlertTriangle, X, Loader2, Plus, Search } from 'lucide-react';
 
 function OrganizerEvents() {
   const navigate = useNavigate();
   const [selectedEventID, setSelectedEventID] = useState(null);
+  const [page, setPage] = useState(0);
+  const [search, setSearch] = useState('');
 
   const { data: events, isLoading } = useQuery({
     queryKey: ['managed-events'],
@@ -27,10 +29,26 @@ function OrganizerEvents() {
     );
   }
 
+  const filteredEvents = (events || []).filter((event) => {
+    const query = search.toLowerCase();
+    return (
+      event.title?.toLowerCase().includes(query) ||
+      event.venue?.toLowerCase().includes(query)
+    );
+  });
+
+  const pageSize = 5;
+  const totalPages = Math.max(1, Math.ceil(filteredEvents.length / pageSize));
+  const currentPage = Math.min(page, totalPages - 1);
+  const paginatedEvents = filteredEvents.slice(currentPage * pageSize, (currentPage + 1) * pageSize);
+
   return (
     <div className="max-w-5xl mx-auto space-y-8">
       <header className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold text-slate-900 uppercase tracking-tight">Managed Events</h1>
+        <div>
+        <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Managed Events</h1>
+        <p className="text-slate-500 text-sm font-medium">Your current approved events.</p>
+        </div>
         <button
           onClick={() => navigate('/proposals/submit')}
           className="bg-[#1f5f89] text-white px-6 py-3 rounded-2xl font-black text-xs flex items-center gap-2 shadow-lg shadow-[#1f5f89]/20 hover:scale-105 transition-all"
@@ -39,53 +57,87 @@ function OrganizerEvents() {
         </button>
       </header>
 
-      <div className="grid gap-4">
-        {!events?.length ? (
-          <div className="bg-white border-2 border-dashed rounded-[40px] p-20 text-center text-slate-400 font-bold">
-            No live events found.
-          </div>
-        ) : (
-          events.map((event) => (
-            <div
-              key={event.eventID}
-              className="ems-card p-6 flex flex-col md:flex-row justify-between items-center gap-6"
-            >
-              <div className="flex-1">
-                <h3 className="text-lg font-bold text-slate-900">{event.title}</h3>
-                <p className="text-xs text-slate-500 font-medium">
-                  {event.eventDate} | {event.venue}
-                </p>
-                <p className="text-[11px] text-blue-600 font-semibold mt-1">
-                  {event.currentRegistrations ?? 0} / {event.capacity} registered
-                </p>
-              </div>
+      <div>
+        <div className="flex items-center gap-2 bg-white px-4 py-2 border border-slate-200 rounded-xl mb-6">
+          <Search size={18} className="text-slate-400" />
+          <input
+            className="outline-none text-sm w-full"
+            placeholder="Search my events..."
+            value={search}
+            onChange={e => { setSearch(e.target.value); setPage(0); }}
+          />
+        </div>
 
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setSelectedEventID(event.eventID)}
-                  className="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg text-xs font-bold flex items-center gap-2 hover:bg-slate-200 transition"
-                >
-                  <Users size={14} /> Participants
-                </button>
-                <button
-                  onClick={() => navigate(`/events/${event.eventID}/update`)}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg text-xs font-bold hover:bg-blue-700 transition"
-                >
-                  Manage
-                </button>
-                <button
-                  onClick={() => {
-                    if (window.confirm('Abort this event? Students will be notified.')) {
-                      navigate(`/events/${event.eventID}/update?action=cancel`);
-                    }
-                  }}
-                  className="px-4 py-2 bg-white border border-red-200 text-red-600 rounded-lg text-xs font-bold hover:bg-red-50 transition"
-                >
-                  Abort
-                </button>
-              </div>
+        <div className="grid gap-4">
+          {!filteredEvents.length ? (
+            <div className="bg-white border-2 border-dashed rounded-[40px] p-20 text-center text-slate-400 font-bold">
+              {search ? 'No events match your search.' : 'No live events found.'}
             </div>
-          ))
+          ) : (
+            paginatedEvents.map((event) => (
+              <div
+                key={event.eventID}
+                className="ems-card p-6 flex flex-col md:flex-row justify-between items-center gap-6"
+              >
+                <div className="flex-1">
+                  <h3 className="text-lg font-bold text-slate-900">{event.title}</h3>
+                  <p className="text-xs text-slate-500 font-medium">
+                    {event.eventDate} | {event.venue}
+                  </p>
+                  <p className="text-[11px] text-blue-600 font-semibold mt-1">
+                    {event.currentRegistrations ?? 0} / {event.capacity} registered
+                  </p>
+                </div>
+
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setSelectedEventID(event.eventID)}
+                    className="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg text-xs font-bold flex items-center gap-2 hover:bg-slate-200 transition"
+                  >
+                    <Users size={14} /> Participants
+                  </button>
+                  <button
+                    onClick={() => navigate(`/events/${event.eventID}/update`)}
+                    className="ems-btn-primary px-4 py-2 text-xs"
+                  >
+                    Update Details
+                  </button>
+                  <button
+                    onClick={() => {
+                      if (window.confirm('Abort this event? Students will be notified.')) {
+                        navigate(`/events/${event.eventID}/update?action=cancel`);
+                      }
+                    }}
+                    className="px-4 py-2 bg-white border border-red-200 text-red-600 rounded-lg text-xs font-bold hover:bg-red-50 transition"
+                  >
+                    Abort
+                  </button>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+
+        {filteredEvents.length > pageSize && (
+          <div className="flex items-center justify-end gap-3 mt-4">
+            <button
+              onClick={() => setPage((prev) => Math.max(0, prev - 1))}
+              disabled={currentPage === 0}
+              className="px-3 py-2 rounded-lg border border-slate-200 text-sm font-semibold text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Previous
+            </button>
+            <span className="text-sm text-slate-500">
+              Page {currentPage + 1} of {totalPages}
+            </span>
+            <button
+              onClick={() => setPage((prev) => Math.min(totalPages - 1, prev + 1))}
+              disabled={currentPage >= totalPages - 1}
+              className="px-3 py-2 rounded-lg border border-slate-200 text-sm font-semibold text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Next
+            </button>
+          </div>
         )}
       </div>
 

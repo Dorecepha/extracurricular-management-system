@@ -2,7 +2,37 @@ import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { updateApi } from '../events/updateApi';
-import { ArrowLeft, Loader2, Mail, RefreshCcw } from 'lucide-react';
+import { ArrowLeft, Loader2, Mail, RefreshCcw, Paperclip, FileText, ExternalLink } from 'lucide-react';
+
+const parseFiles = (json) => {
+  try {
+    const parsed = JSON.parse(json || '[]');
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (err) {
+    console.warn('Attachment parse error', err);
+    return [];
+  }
+};
+
+const handleOpenFile = (file) => {
+  const filePath = typeof file === 'string' ? file : file?.path;
+  if (filePath) {
+    const apiBase = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api';
+    const safePath = encodeURI(filePath);
+    const finalUrl = `${apiBase.replace(/\/$/, '')}/${safePath.replace(/^\//, '')}`;
+    window.open(finalUrl, '_blank', 'noopener');
+    return;
+  }
+  if (file?.dataUrl) {
+    window.open(file.dataUrl, '_blank', 'noopener');
+    return;
+  }
+  if (file?.url) {
+    window.open(file.url, '_blank', 'noopener');
+    return;
+  }
+  alert('No file data available to preview.');
+};
 
 function UpdateReviewDetails() {
   const { requestID } = useParams();
@@ -30,6 +60,7 @@ function UpdateReviewDetails() {
   });
 
   if (isLoading) return <div className="p-20 flex justify-center"><Loader2 className="animate-spin text-[#1f5f89]" size={48} /></div>;
+  const files = parseFiles(req?.attachmentsJson);
 
   return (
     <div className="max-w-4xl mx-auto space-y-8 pb-20">
@@ -54,15 +85,47 @@ function UpdateReviewDetails() {
                   return (
                     <div key={field} className="p-5 bg-slate-50 rounded-2xl border border-slate-100">
                       <p className="text-[10px] font-black text-slate-400 uppercase mb-2">{field}</p>
-                      <p className="text-green-600 font-bold">{req?.[key] ?? 'No Change'}</p>
+                      <p className="text-emerald-600 font-bold">{req?.[key] ?? 'No Change'}</p>
                     </div>
                   );
                 })}
              </div>
           </div>
 
+          <div className="space-y-3">
+            <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+              <Paperclip size={14} /> Supporting Documents ({files.length})
+            </h4>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {files.length ? (
+                files.map((file, idx) => (
+                  <div key={idx} className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-white rounded-lg text-slate-500 border border-slate-200">
+                        <FileText size={16} />
+                      </div>
+                      <div>
+                        <p className="text-xs font-bold text-slate-800 truncate max-w-[180px]">{file.name || 'Attachment'}</p>
+                        {file.size && <p className="text-[10px] text-slate-400 font-medium">{file.size}</p>}
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleOpenFile(file)}
+                      className="text-[#1f5f89] p-2 hover:bg-blue-50 rounded-full transition-colors"
+                    >
+                      <ExternalLink size={14} />
+                    </button>
+                  </div>
+                ))
+              ) : (
+                <p className="text-slate-400 text-xs font-bold italic">No attachments were provided.</p>
+              )}
+            </div>
+          </div>
+
           <div className="pt-10 border-t flex gap-4">
-            <button onClick={() => setModalMode('APPROVE')} className="flex-1 bg-green-600 text-white py-4 rounded-2xl font-bold uppercase tracking-widest text-xs hover:bg-green-700 transition-all">Approve Changes</button>
+            <button onClick={() => setModalMode('APPROVE')} className="flex-1 bg-emerald-600 text-white py-4 rounded-2xl font-bold uppercase tracking-widest text-xs hover:bg-emerald-700 transition-all">Approve Changes</button>
             <button onClick={() => setModalMode('REJECT')} className="flex-1 bg-red-600 text-white py-4 rounded-2xl font-bold uppercase tracking-widest text-xs hover:bg-red-700 transition-all">Reject Changes</button>
           </div>
         </div>
@@ -105,7 +168,7 @@ function UpdateReviewDetails() {
               <button 
                 onClick={() => mutation.mutate()}
                 disabled={mutation.isPending || (modalMode === 'REJECT' && !reason)}
-                className={`flex-1 py-4 rounded-xl text-white font-black text-xs uppercase tracking-widest shadow-lg ${modalMode === 'APPROVE' ? 'bg-green-600 shadow-green-900/20' : 'bg-red-600 shadow-red-900/20'}`}
+                className={`flex-1 py-4 rounded-xl text-white font-black text-xs uppercase tracking-widest shadow-lg ${modalMode === 'APPROVE' ? 'bg-emerald-600 shadow-emerald-900/20' : 'bg-red-600 shadow-red-900/20'}`}
               >
                 {mutation.isPending ? 'Processing...' : `Confirm ${modalMode}`}
               </button>

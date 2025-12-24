@@ -36,6 +36,9 @@ public class Registration {
     @Builder.Default
     private RegistrationStatus status = RegistrationStatus.PENDING;
 
+    @Column(name = "confirmation_number", unique = true, nullable = false, length = 20)
+    private String confirmationNumber;
+
     @Column(name = "registered_at")
     @Builder.Default
     private LocalDateTime registeredAt = LocalDateTime.now();
