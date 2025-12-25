@@ -15,6 +15,7 @@
 
 ## Overview
 Extracurricular Management System (EMS) is a robust university platform for event proposals, approval workflows, and student registration management. It emphasizes data integrity, predictable APIs, and high performance under registration surges.
+This project is coded and developed by Lê Thái Minh Tín (ITCSIU24086). 
 
 ## EMS DNA (Technical Constraints)
 - **Identity Naming:** Unified `camelCaseID` naming for identifiers (e.g., `userID`, `eventID`).
