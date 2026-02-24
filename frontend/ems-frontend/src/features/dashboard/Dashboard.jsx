@@ -4,14 +4,22 @@ import { useNavigate } from 'react-router-dom';
 import { dashboardApi } from './dashboardApi';
 import { safeParseUser } from '../../lib/safeParse';
 import DashboardCalendar from './components/DashboardCalendar';
+import DashboardV2 from './DashboardV2';
 import { Users, AlertCircle, ArrowRight, Loader2, CheckCircle, X, Bookmark, ShieldCheck } from 'lucide-react';
 
 function Dashboard() {
+  // Feature flag check for DashboardV2
+  const enableV2 = import.meta.env.VITE_ENABLE_DASHBOARD_V2 === 'true';
+
+  if (enableV2) {
+    return <DashboardV2 />;
+  }
+
   const navigate = useNavigate();
   const user = safeParseUser();
   const [showSuccess, setShowSuccess] = useState(true);
   const { data: stats, isLoading } = useQuery({
-    queryKey: ['dashboard-stats'],
+    queryKey: ['dashboard-stats', user?.userID],
     queryFn: dashboardApi.getStats
   });
   const hasResolution = stats?.myProposals?.some((p) => p.status !== 'PENDING');

@@ -7,7 +7,11 @@ import com.ems.backend.enums.UserRole;
 import com.ems.backend.repository.UserRepository;
 import com.ems.backend.service.AuditLogService;
 import com.ems.backend.service.UserService;
+import com.ems.backend.specification.UserSpecification;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,6 +27,14 @@ public class UserServiceImpl implements UserService {
     @Override
     public List<UserDTO> getAllUsers() {
         return userRepository.findAll().stream().map(this::mapToDTO).toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<UserDTO> getAllUsers(Pageable pageable, String role, String accountStatus, String search) {
+        Specification<User> spec = UserSpecification.filterUsers(role, accountStatus, search);
+        Page<User> users = userRepository.findAll(spec, pageable);
+        return users.map(this::mapToDTO);
     }
 
     @Override

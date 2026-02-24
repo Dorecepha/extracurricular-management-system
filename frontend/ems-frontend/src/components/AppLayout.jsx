@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import { Calendar, FilePlus, ClipboardList, ShieldCheck, LogOut, Bookmark, LayoutDashboard, Users } from 'lucide-react';
 import { safeParseUser, safeGetItem, clearAuthData } from '../lib/safeParse';
 
 function AppLayout() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -105,8 +107,12 @@ function AppLayout() {
             </div>
           </div>
 
-          <button 
-            onClick={() => { clearAuthData(); navigate('/login'); }}
+          <button
+            onClick={() => {
+              clearAuthData();
+              queryClient.clear();
+              navigate('/login');
+            }}
             className="flex items-center gap-3 w-full px-4 py-2.5 rounded-xl text-xs font-bold text-slate-500 hover:text-rose-400 hover:bg-rose-500/5 transition-all group"
           >
             <LogOut size={16} className="group-hover:-translate-x-1 transition-transform" />

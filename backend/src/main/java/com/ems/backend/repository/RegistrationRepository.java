@@ -8,6 +8,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 
@@ -19,6 +20,12 @@ public interface RegistrationRepository extends JpaRepository<Registration, Long
     List<Registration> findByEvent_EventID(Long eventId);
     long countByStudent_UserID(Long studentID);
     long countByEvent_Organizer_UserID(Long organizerID);
+
+    // New methods for dashboard v2
+    long countByRegisteredAtAfter(LocalDateTime date);
+    List<Registration> findByStudent_UserIDAndEvent_EventDateGreaterThanEqual(Long studentId, LocalDate date);
+    List<Registration> findByStudent_UserIDAndEvent_EventDateBefore(Long studentId, LocalDate date);
+
     @Query("SELECT CASE WHEN COUNT(r) > 0 THEN true ELSE false END FROM Registration r " +
            "WHERE r.student.userID = :studentId " +
            "AND r.status = 'CONFIRMED' " +

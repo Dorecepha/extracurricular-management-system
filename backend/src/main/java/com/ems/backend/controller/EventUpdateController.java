@@ -23,7 +23,7 @@ public class EventUpdateController {
     public record RejectionRequest(String rejectionReason) {}
 
     private final EventUpdateRequestService eventUpdateRequestService;
-    private final ObjectMapper mapper = new ObjectMapper().findAndRegisterModules();
+    private final ObjectMapper mapper; // Injected from JacksonConfig bean
 
     @PostMapping(value = "/event/{eventID}", consumes = {"multipart/form-data"})
     @PreAuthorize("hasRole('ORGANIZER')")

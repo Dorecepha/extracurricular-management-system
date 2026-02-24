@@ -37,70 +37,79 @@ public class RegistrationServiceImpl implements RegistrationService {
     @Override
     @Transactional
     public void registerStudentForEvent(Long eventID, Long studentID) {
-        Event event = eventRepository.findById(eventID)
-                .orElseThrow(() -> new NotFoundException("Event not found with ID: " + eventID));
+        int maxAttempts = 3;
+        int attempt = 0;
 
-        if (event.getStatus() == EventStatus.CANCELLED || event.getStatus() == EventStatus.COMPLETED) {
-            throw new IllegalStateException("Registrations are closed for this event.");
-        }
+        while (attempt < maxAttempts) {
+            try {
+                Event event = eventRepository.findById(eventID)
+                        .orElseThrow(() -> new NotFoundException("Event not found with ID: " + eventID));
 
-        User user = userRepository.findById(studentID)
-                .orElseThrow(() -> new NotFoundException("Student not found with ID: " + studentID));
-        if (!(user instanceof Student student)) {
-            throw new IllegalStateException("User is not a student.");
-        }
+                if (event.getStatus() == EventStatus.CANCELLED || event.getStatus() == EventStatus.COMPLETED) {
+                    throw new IllegalStateException("Registrations are closed for this event.");
+                }
 
-        if (registrationRepository.existsByStudent_UserIDAndEvent_EventID(studentID, eventID)) {
-            throw new IllegalStateException("Registration error: You are already signed up for this event.");
-        }
+                User user = userRepository.findById(studentID)
+                        .orElseThrow(() -> new NotFoundException("Student not found with ID: " + studentID));
+                if (!(user instanceof Student)) {
+                    throw new IllegalStateException("User is not a student.");
+                }
+                Student student = (Student) user;
 
-        boolean hasOverlap = registrationRepository.existsByStudentAndDateOverlap(
-                studentID, event.getEventDate(), event.getStartTime(), event.getEndTime());
-        if (hasOverlap) {
-            throw new IllegalStateException("Schedule conflict: You have another event registered during this time slot.");
-        }
+                // 2. Initial Validations
+                if (registrationRepository.existsByStudent_UserIDAndEvent_EventID(studentID, eventID)) {
+                    return; // Already registered - treat as success to be user-friendly
+                }
+                boolean hasOverlap = registrationRepository.existsByStudentAndDateOverlap(
+                        studentID, event.getEventDate(), event.getStartTime(), event.getEndTime());
+                if (hasOverlap) {
+                    throw new IllegalStateException("Schedule conflict: You have another event registered during this time slot.");
+                }
+                Integer currentRegistrations = event.getCurrentRegistrations() == null
+                        ? 0
+                        : event.getCurrentRegistrations();
+                if (currentRegistrations >= event.getCapacity()) {
+                    throw new IllegalStateException("This event has reached full capacity.");
+                }
 
-        Integer currentRegistrations = event.getCurrentRegistrations() == null
-                ? 0
-                : event.getCurrentRegistrations();
+                // 3. THE GATEKEEPER: Update the Event Count FIRST
+                event.setCurrentRegistrations(currentRegistrations + 1);
 
-        if (currentRegistrations >= event.getCapacity()) {
-            throw new IllegalStateException("Event full: No seats remaining for this session.");
-        }
+                // DNA: saveAndFlush forces the @Version check IMMEDIATELY.
+                // If another device moved first, this line throws the Exception.
+                eventRepository.saveAndFlush(event);
 
-        try {
-            event.setCurrentRegistrations(currentRegistrations + 1);
-            eventRepository.saveAndFlush(event);
+                // 4. THE RECORD: Only create registration if the Gatekeeper allowed us through
+                String confirmationCode = "REG-" + java.util.UUID.randomUUID()
+                        .toString()
+                        .substring(0, 8)
+                        .toUpperCase();
+                Registration registration = Registration.builder()
+                        .event(event)
+                        .student(student)
+                        .status(RegistrationStatus.CONFIRMED)
+                        .confirmationNumber(confirmationCode)
+                        .registeredAt(LocalDateTime.now())
+                        .build();
 
-            String confirmationCode = "REG-" + java.util.UUID.randomUUID()
-                    .toString()
-                    .substring(0, 8)
-                    .toUpperCase();
+                registrationRepository.saveAndFlush(registration);
 
-            Registration registration = Registration.builder()
-                    .event(event)
-                    .student(student)
-                    .status(RegistrationStatus.CONFIRMED)
-                    .confirmationNumber(confirmationCode)
-                    .registeredAt(LocalDateTime.now())
-                    .build();
+                // 5. Success
+                sendConfirmationEmail(student, event, confirmationCode);
+                return;
 
-            Registration savedRegistration = registrationRepository.save(registration);
-
-            String emailBody = String.format(
-                    "Hello %s,%n%nYour registration for '%s' is confirmed.%n" +
-                            "Confirmation Number: %s%n" +
-                            "Venue: %s%nDate: %s%n%nSee you there!",
-                    student.getFirstName(),
-                    event.getTitle(),
-                    savedRegistration.getConfirmationNumber(),
-                    event.getVenue(),
-                    event.getEventDate().toString()
-            );
-
-            emailService.sendNotification(student.getEmail(), "Registration Confirmed", emailBody);
-        } catch (ObjectOptimisticLockingFailureException e) {
-            throw new IllegalStateException("Registration failed due to high demand. Please try again.");
+            } catch (ObjectOptimisticLockingFailureException e) {
+                attempt++;
+                if (attempt >= maxAttempts) {
+                    throw new IllegalStateException("High traffic detected. Please try again.");
+                }
+                // Small backoff before retry
+                try {
+                    Thread.sleep(50);
+                } catch (InterruptedException ignored) {
+                    Thread.currentThread().interrupt();
+                }
+            }
         }
     }
 
@@ -197,5 +206,20 @@ public class RegistrationServiceImpl implements RegistrationService {
                     return map;
                 })
                 .toList();
+    }
+
+    private void sendConfirmationEmail(Student student, Event event, String confirmationCode) {
+        String emailBody = String.format(
+                "Hello %s,%n%nYour registration for '%s' is confirmed.%n" +
+                        "Confirmation Number: %s%n" +
+                        "Venue: %s%nDate: %s%n%nSee you there!",
+                student.getFirstName(),
+                event.getTitle(),
+                confirmationCode,
+                event.getVenue(),
+                event.getEventDate().toString()
+        );
+
+        emailService.sendNotification(student.getEmail(), "Registration Confirmed", emailBody);
     }
 }

@@ -23,7 +23,6 @@ public class Response<T> {
     private List<String> errors;
 
     // DNA: Legacy Constructor to fix 18 compilation errors
-    // This allows existing "new Response<>(status, msg, data)" calls to work
     public Response(int statusCode, String message, T data) {
         this.statusCode = statusCode;
         this.message = message;

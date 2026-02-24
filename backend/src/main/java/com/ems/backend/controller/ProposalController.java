@@ -26,9 +26,7 @@ public class ProposalController {
 
     private final ProposalService proposalService;
     private final Validator validator;
-    private final ObjectMapper objectMapper = new ObjectMapper()
-            .findAndRegisterModules()
-            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    private final ObjectMapper objectMapper; // Injected from JacksonConfig bean
 
     @GetMapping
     @PreAuthorize("hasRole('ORGANIZER')")

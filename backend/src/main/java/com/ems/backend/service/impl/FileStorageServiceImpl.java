@@ -18,6 +18,11 @@ import java.util.UUID;
 @Service
 public class FileStorageServiceImpl implements FileStorageService {
     private final String uploadDir = "uploads/proposals/";
+    private final ObjectMapper objectMapper; // Injected from JacksonConfig bean
+
+    public FileStorageServiceImpl(ObjectMapper objectMapper) {
+        this.objectMapper = objectMapper;
+    }
 
     @Override
     public String storeFiles(MultipartFile[] files) {
@@ -44,7 +49,7 @@ public class FileStorageServiceImpl implements FileStorageService {
                 metadata.add(fileInfo);
             }
 
-            return new ObjectMapper().writeValueAsString(metadata);
+            return objectMapper.writeValueAsString(metadata);
         } catch (Exception e) {
             throw new RuntimeException("Could not store files: " + e.getMessage());
         }

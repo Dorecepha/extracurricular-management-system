@@ -65,7 +65,11 @@ public class Event {
     private OrganizationType organizationType;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "organizer_id", nullable = false)
+    @JoinColumn(
+        name = "organizer_id",
+        nullable = false,
+        foreignKey = @ForeignKey(name = "fk_events_organizer")
+    )
     private EventOrganizer organizer;
 
     @Column(name = "created_at")
