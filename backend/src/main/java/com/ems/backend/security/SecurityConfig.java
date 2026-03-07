@@ -40,7 +40,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/auth/**").permitAll() // Open access
                 .requestMatchers(HttpMethod.GET, "/api/events/**").permitAll() // Public event viewing for guests
                 .requestMatchers("/api/uploads/**").permitAll() // Allow public access to uploaded assets
-                .requestMatchers("/actuator/**").permitAll() // Load testing metrics access
+                .requestMatchers("/actuator/health", "/actuator/info").permitAll() // Public health check only
                 .requestMatchers("/error").permitAll()
                 // Role-based restrictions can also be done here or via @PreAuthorize
                 .anyRequest().authenticated()

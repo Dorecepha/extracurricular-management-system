@@ -22,6 +22,7 @@ import com.ems.backend.service.AuditLogService;
 import com.ems.backend.service.FileStorageService;
 import com.ems.backend.service.email.EmailService;
 import com.ems.backend.wrappers.Response;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -48,6 +49,7 @@ public class PostEventReportController {
     private final AttendanceExcelParserService excelParserService;
     private final EmailService emailService;
     private final AuditLogService auditLogService;
+    private final ObjectMapper objectMapper;
 
     private static final String AUDIT_ACTION_REPORT_SUBMITTED = "REPORT_SUBMITTED";
     private static final String AUDIT_ACTION_REPORT_APPROVED = "REPORT_APPROVED";
@@ -83,10 +85,20 @@ public class PostEventReportController {
             @RequestParam(value = "totalBudget", required = false) String totalBudget,
             @RequestParam(value = "feedbackCount", required = false) Integer feedbackCount,
             @RequestParam(value = "submitterName", required = false) String submitterName,
-            @RequestParam(value = "submitterRole", required = false) String submitterRole) {
+            @RequestParam(value = "submitterRole", required = false) String submitterRole,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
 
         PostEventReport report = reportRepository.findByEventID(eventID)
                 .orElseThrow(() -> new NotFoundException("Report not found for event ID: " + eventID));
+
+        var event = eventRepository.findById(eventID)
+                .orElseThrow(() -> new NotFoundException("Event not found"));
+        if (!event.getOrganizer().getUserID().equals(userDetails.getUser().getUserID())) {
+            return ResponseEntity.status(403).body(Response.<PostEventReportDTO>builder()
+                    .statusCode(403)
+                    .message("You are not authorized to submit a report for this event")
+                    .build());
+        }
 
         if (report.getStatus() != ReportStatus.NOT_SUBMITTED) {
             return ResponseEntity.badRequest().body(Response.<PostEventReportDTO>builder()
@@ -94,9 +106,6 @@ public class PostEventReportController {
                     .message("Report has already been submitted")
                     .build());
         }
-
-        var event = eventRepository.findById(eventID)
-                .orElseThrow(() -> new NotFoundException("Event not found"));
 
         // Validate photo count
         int photoCount = photos != null ? photos.length : 0;
@@ -151,7 +160,7 @@ public class PostEventReportController {
                     renamedFiles.toArray(new MultipartFile[0]), "reports/" + eventID + "/photos");
             // Parse JSON to get file paths and create photo records
             try {
-                com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+                com.fasterxml.jackson.databind.ObjectMapper mapper = objectMapper;
                 List<java.util.Map<String, String>> photoFiles = mapper.readValue(photosJson,
                         mapper.getTypeFactory().constructCollectionType(List.class, java.util.Map.class));
 
@@ -175,7 +184,7 @@ public class PostEventReportController {
             String feedbackJson = fileStorageService.storeFilesInFolder(
                     new MultipartFile[]{feedbackFile}, "reports/" + eventID + "/feedback");
             try {
-                com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+                com.fasterxml.jackson.databind.ObjectMapper mapper = objectMapper;
                 List<java.util.Map<String, String>> feedbackFiles = mapper.readValue(feedbackJson,
                         mapper.getTypeFactory().constructCollectionType(List.class, java.util.Map.class));
                 if (!feedbackFiles.isEmpty()) {
@@ -250,17 +259,6 @@ public class PostEventReportController {
                 event.getOrganizer().getEmail(),
                 "Report Submitted Successfully",
                 "Your post-event report for '" + event.getTitle() + "' has been submitted successfully."
-        );
-
-        // Audit log
-        auditLogService.log(
-                event.getOrganizer().getUserID(),
-                event.getOrganizer().getEmail(),
-                AUDIT_ACTION_REPORT_SUBMITTED,
-                "PostEventReport",
-                report.getReportID(),
-                "SUCCESS",
-                null, null
         );
 
         PostEventReportDTO dto = convertToDTO(report);
@@ -522,7 +520,7 @@ public class PostEventReportController {
                 String photosJson = fileStorageService.storeFilesInFolder(
                         renamedFiles.toArray(new MultipartFile[0]), "reports/" + report.getEventID() + "/photos");
 
-                com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+                com.fasterxml.jackson.databind.ObjectMapper mapper = objectMapper;
                 List<java.util.Map<String, String>> photoFiles = mapper.readValue(photosJson,
                         mapper.getTypeFactory().constructCollectionType(List.class, java.util.Map.class));
 
@@ -546,7 +544,7 @@ public class PostEventReportController {
             try {
                 String feedbackJson = fileStorageService.storeFilesInFolder(
                         new MultipartFile[]{feedbackFile}, "reports/" + report.getEventID() + "/feedback");
-                com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+                com.fasterxml.jackson.databind.ObjectMapper mapper = objectMapper;
                 List<java.util.Map<String, String>> feedbackFiles = mapper.readValue(feedbackJson,
                         mapper.getTypeFactory().constructCollectionType(List.class, java.util.Map.class));
                 if (!feedbackFiles.isEmpty()) {
@@ -644,7 +642,7 @@ public class PostEventReportController {
             try {
                 String certJson = fileStorageService.storeFilesInFolder(
                         new MultipartFile[]{certTemplate}, "reports/" + reportID + "/cert-templates");
-                com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+                com.fasterxml.jackson.databind.ObjectMapper mapper = objectMapper;
                 List<java.util.Map<String, String>> certFiles = mapper.readValue(certJson,
                         mapper.getTypeFactory().constructCollectionType(List.class, java.util.Map.class));
                 if (!certFiles.isEmpty()) {
@@ -685,10 +683,20 @@ public class PostEventReportController {
     public ResponseEntity<Response<String>> downloadCertTemplate(
             @PathVariable Long reportID,
             @RequestParam(required = false) Long userID,
-            @RequestParam(required = false) String userEmail) {
+            @RequestParam(required = false) String userEmail,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
 
         PostEventReport report = reportRepository.findById(reportID)
                 .orElseThrow(() -> new NotFoundException("Report not found with ID: " + reportID));
+
+        var certEvent = eventRepository.findById(report.getEventID())
+                .orElseThrow(() -> new NotFoundException("Event not found"));
+        if (!certEvent.getOrganizer().getUserID().equals(userDetails.getUser().getUserID())) {
+            return ResponseEntity.status(403).body(Response.<String>builder()
+                    .statusCode(403)
+                    .message("You are not authorized to download the certificate template for this report")
+                    .build());
+        }
 
         if (report.getStatus() != ReportStatus.APPROVED && report.getStatus() != ReportStatus.CERT_TEMPLATE_PENDING) {
             return ResponseEntity.badRequest().body(Response.<String>builder()

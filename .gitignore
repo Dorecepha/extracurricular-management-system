@@ -119,9 +119,6 @@ Desktop.ini
 $RECYCLE.BIN/
 *.lnk
 
-# Linux
-*~
-
 # ============================================================
 # Load Testing (k6 results — not source files)
 # ============================================================
@@ -138,4 +135,3 @@ load-tests/**/*.csv
 *.bak
 *.orig
 *.rej
-.cache/
