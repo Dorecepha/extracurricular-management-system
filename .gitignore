@@ -3,6 +3,7 @@
 # ============================================================
 backend/src/main/resources/application.properties
 backend/src/test/resources/application.properties
+frontend/ems-frontend/.env
 
 # ============================================================
 # Java / Maven
