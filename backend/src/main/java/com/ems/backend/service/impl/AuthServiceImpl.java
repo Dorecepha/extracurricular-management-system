@@ -6,6 +6,7 @@ import com.ems.backend.entity.EventOrganizer;
 import com.ems.backend.entity.Student;
 import com.ems.backend.entity.User;
 import com.ems.backend.enums.AccountStatus;
+import com.ems.backend.enums.AdminDepartment;
 import com.ems.backend.enums.AdminLevel;
 import com.ems.backend.enums.UserRole;
 import com.ems.backend.exception.BadRequestException;
@@ -66,9 +67,20 @@ public class AuthServiceImpl implements AuthService {
                         .build();
             }
             case ADMIN -> {
-                // Caution: Public admin registration usually restricted in real apps
+                // Public registration always creates STANDARD_ADMIN — SUPER_ADMIN can only be
+                // created by an existing SUPER_ADMIN through the admin user management endpoint.
+                AdminDepartment dept = AdminDepartment.YOUTH_UNION;
+                if (request.getAdminDepartment() != null && !request.getAdminDepartment().isBlank()) {
+                    try {
+                        dept = AdminDepartment.valueOf(request.getAdminDepartment().toUpperCase());
+                    } catch (IllegalArgumentException ignored) {
+                        dept = AdminDepartment.YOUTH_UNION;
+                    }
+                }
+
                 user = Administrator.builder()
                         .adminLevel(AdminLevel.STANDARD_ADMIN)
+                        .department(dept)
                         // Base User fields
                         .email(request.getEmail())
                         .firstName(request.getFirstName())
@@ -104,6 +116,17 @@ public class AuthServiceImpl implements AuthService {
         var jwtToken = jwtUtils.generateToken(user.getEmail());
 
         // Build the DTO first
+        String adminDepartment = null;
+        String adminLevel = null;
+        if (user instanceof Administrator admin) {
+            if (admin.getDepartment() != null) {
+                adminDepartment = admin.getDepartment().name();
+            }
+            if (admin.getAdminLevel() != null) {
+                adminLevel = admin.getAdminLevel().name();
+            }
+        }
+
         com.ems.backend.dto.AuthResponse authResponse = com.ems.backend.dto.AuthResponse.builder()
                 .token(jwtToken)
                 .email(user.getEmail())
@@ -111,6 +134,8 @@ public class AuthServiceImpl implements AuthService {
                 .id(user.getUserID())
                 .firstName(user.getFirstName())
                 .lastName(user.getLastName())
+                .adminDepartment(adminDepartment)
+                .adminLevel(adminLevel)
                 .build();
 
         // Wrap it in the Response

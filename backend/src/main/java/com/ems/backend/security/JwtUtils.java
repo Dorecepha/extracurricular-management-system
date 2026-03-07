@@ -18,9 +18,9 @@ import java.util.function.Function;
 @Slf4j
 public class JwtUtils {
 
-    // 6 months expiration
-    private static final long EXPIRATION_TIME_IN_MILLISEC = 1000L * 60L * 60L * 24L * 30L * 6L; 
-    
+    @Value("${expirationInt}")
+    private long expirationInt;
+
     private SecretKey key;
 
     @Value("${secreteJwtString}")
@@ -36,7 +36,7 @@ public class JwtUtils {
         return Jwts.builder()
                 .subject(email)
                 .issuedAt(new Date(System.currentTimeMillis()))
-                .expiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME_IN_MILLISEC))
+                .expiration(new Date(System.currentTimeMillis() + expirationInt))
                 .signWith(key)
                 .compact();
     }

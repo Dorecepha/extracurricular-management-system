@@ -7,7 +7,9 @@ import com.ems.backend.enums.EventStatus;
 import com.ems.backend.repository.EventRepository;
 import com.ems.backend.repository.RegistrationRepository;
 import com.ems.backend.service.EventService;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -15,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class EventServiceImpl implements EventService {
@@ -63,13 +66,31 @@ public class EventServiceImpl implements EventService {
     private EventDTO mapToHydratedDTO(Event event, Long currentUserID) {
         boolean registered = false;
         boolean isOwner = false;
-        if (currentUserID != null) {
-            registered = registrationRepository.existsByStudent_UserIDAndEvent_EventID(currentUserID, event.getEventID());
-            isOwner = event.getOrganizer() != null && currentUserID.equals(event.getOrganizer().getUserID());
+        Long organizerID = null;
+        String organizerName = null;
+
+        // Defensive handling for organizer access (prevents EntityNotFoundException)
+        try {
+            if (event.getOrganizer() != null) {
+                organizerID = event.getOrganizer().getUserID();
+                organizerName = event.getOrganizer().getOrganizationName();
+
+                if (currentUserID != null) {
+                    registered = registrationRepository.existsByStudent_UserIDAndEvent_EventID(currentUserID, event.getEventID());
+                    isOwner = currentUserID.equals(organizerID);
+                }
+            } else {
+                log.warn("Event {} has null organizer reference", event.getEventID());
+            }
+        } catch (EntityNotFoundException e) {
+            log.warn("Event {} references non-existent organizer - data integrity issue detected", event.getEventID());
+            // Leave organizerID and organizerName as null - frontend will handle gracefully
         }
 
-        Long organizerID = event.getOrganizer() != null ? event.getOrganizer().getUserID() : null;
-        String organizerName = event.getOrganizer() != null ? event.getOrganizer().getOrganizationName() : null;
+        if (currentUserID != null && organizerID == null) {
+            // If we couldn't load organizer but user is authenticated, still check registration
+            registered = registrationRepository.existsByStudent_UserIDAndEvent_EventID(currentUserID, event.getEventID());
+        }
 
         return EventDTO.builder()
                 .eventID(event.getEventID())

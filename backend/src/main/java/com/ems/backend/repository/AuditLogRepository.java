@@ -7,4 +7,5 @@ import java.util.List;
 
 public interface AuditLogRepository extends JpaRepository<AuditLog, Long> {
     List<AuditLog> findAllByOrderByTimestampDesc();
+    List<AuditLog> findTop20ByOrderByTimestampDesc(); // For dashboard v2 activity feed
 }

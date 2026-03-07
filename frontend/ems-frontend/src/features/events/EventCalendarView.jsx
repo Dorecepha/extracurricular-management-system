@@ -6,6 +6,20 @@ import { ChevronLeft, ChevronRight, Users, CheckCircle, X, MapPin, Clock, AlertC
 import { eventApi } from './api';
 import { safeParseUser } from '../../lib/safeParse';
 
+// Helper: Convert LocalTime (string/array/object) to display string
+const formatTime = (time) => {
+  if (!time) return '';
+  if (typeof time === 'string') return time;
+  if (Array.isArray(time)) {
+    const [h = 0, m = 0] = time;
+    return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+  }
+  if (typeof time === 'object' && time.hour !== undefined) {
+    return `${String(time.hour).padStart(2, '0')}:${String(time.minute || 0).padStart(2, '0')}`;
+  }
+  return String(time);
+};
+
 function EventCalendarView() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -71,7 +85,7 @@ function EventCalendarView() {
           {days.map((day) => {
             const dayEvents = events
               .filter((e) => isSameDay(new Date(e.eventDate), day))
-              .sort((a, b) => (a.startTime || '').localeCompare(b.startTime || ''));
+              .sort((a, b) => formatTime(a.startTime).localeCompare(formatTime(b.startTime)));
             const isToday = isSameDay(day, new Date());
 
             return (
@@ -93,7 +107,7 @@ function EventCalendarView() {
                       <p className="font-black text-slate-800 truncate uppercase tracking-wide">{e.title}</p>
                       <p className="text-slate-500 font-semibold flex items-center gap-1">
                         <span className="w-2 h-2 rounded-full bg-blue-500 inline-block" />
-                        {e.startTime}
+                        {formatTime(e.startTime)}
                       </p>
                     </button>
                   ))}
@@ -121,7 +135,7 @@ function EventCalendarView() {
               <h2 className="text-3xl font-black uppercase leading-tight">{selectedEvent.title}</h2>
               <div className="flex gap-4 mt-4 text-sm font-medium text-blue-100">
                 <span className="flex items-center gap-1"><MapPin size={14} /> {selectedEvent.venue}</span>
-                <span className="flex items-center gap-1"><Clock size={14} /> {selectedEvent.startTime}</span>
+                <span className="flex items-center gap-1"><Clock size={14} /> {formatTime(selectedEvent.startTime)}</span>
               </div>
             </div>
 

@@ -26,9 +26,7 @@ public class ProposalController {
 
     private final ProposalService proposalService;
     private final Validator validator;
-    private final ObjectMapper objectMapper = new ObjectMapper()
-            .findAndRegisterModules()
-            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    private final ObjectMapper objectMapper; // Injected from JacksonConfig bean
 
     @GetMapping
     @PreAuthorize("hasRole('ORGANIZER')")
@@ -78,10 +76,12 @@ public class ProposalController {
     public ResponseEntity<Response<ProposalDTO>> resubmit(
             @PathVariable Long proposalID,
             @RequestPart("proposal") String proposalJson,
-            @RequestPart(value = "files", required = false) MultipartFile[] files) throws Exception {
+            @RequestPart(value = "files", required = false) MultipartFile[] files,
+            @AuthenticationPrincipal CustomUserDetails userDetails) throws Exception {
 
+        Long organizerID = userDetails.getUser().getUserID();
         ProposalDTO dto = objectMapper.readValue(proposalJson, ProposalDTO.class);
-        ProposalDTO updated = proposalService.updateAndResubmit(proposalID, dto, files);
+        ProposalDTO updated = proposalService.updateAndResubmit(proposalID, dto, files, organizerID);
 
         Response<ProposalDTO> response = Response.<ProposalDTO>builder()
                 .statusCode(HttpStatus.OK.value())

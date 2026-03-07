@@ -1,31 +1,141 @@
-# Node
-node_modules/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-dist/
-.vite/
-
-# Java
+# ============================================================
+# Java / Maven
+# ============================================================
 target/
+!.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+
 *.class
 *.jar
 *.war
 *.ear
-*.log
+*.nar
+*.zip
+*.tar.gz
+*.rar
 
-# IDEs
-.idea/
-.vscode/
-*.iml
-*.swp
-*.swo
+# JVM crash logs
+hs_err_pid*
+replay_pid*
 
-# OS
-.DS_Store
-Thumbs.db
+# ============================================================
+# Spring Boot / Application Config (sensitive)
+# ============================================================
+application-local.properties
+application-local.yml
+application-prod.properties
+application-prod.yml
+application-dev.properties
+application-dev.yml
 
-# Environment
+# ============================================================
+# Environment Variables (SENSITIVE — never commit)
+# ============================================================
+.env
 .env.local
 .env.*.local
-*.class
+*.env
+
+# ============================================================
+# Secrets & Certificates
+# ============================================================
+*.key
+*.pem
+*.p12
+*.jks
+*.keystore
+*.pkcs12
+secrets/
+*-secret.properties
+*-secret.yml
+
+# ============================================================
+# File Uploads (user-generated content, not source code)
+# ============================================================
+backend/uploads/**
+!backend/uploads/.gitkeep
+
+# ============================================================
+# Logs
+# ============================================================
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# ============================================================
+# Node / npm / Frontend
+# ============================================================
+node_modules/
+dist/
+dist-ssr/
+.vite/
+.cache/
+
+# ============================================================
+# IDEs & Editors
+# ============================================================
+
+# IntelliJ IDEA
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+
+# Eclipse
+.settings/
+.classpath
+.project
+.factorypath
+
+# VS Code (allow shared extensions recommendation)
+.vscode/*
+!.vscode/extensions.json
+
+# Vim/Emacs swap files
+*.swp
+*.swo
+*~
+\#*\#
+
+# ============================================================
+# Operating System
+# ============================================================
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+Desktop.ini
+$RECYCLE.BIN/
+*.lnk
+
+# Linux
+*~
+
+# ============================================================
+# Load Testing (k6 results — not source files)
+# ============================================================
+load-tests/results/
+load-tests/reports/
+load-tests/**/*.json
+load-tests/**/*.html
+load-tests/**/*.csv
+
+# ============================================================
+# Miscellaneous
+# ============================================================
+*.tmp
+*.bak
+*.orig
+*.rej
+.cache/

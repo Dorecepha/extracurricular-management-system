@@ -21,8 +21,12 @@ export const adminApi = {
     const response = await api.put(`/admin/proposals/${id}/reject`, { rejectionReason });
     return response.data;
   },
-  getAllUsers: async () => {
-    const res = await api.get('/admin/users');
+  getAllUsers: async (page = 0, size = 10, role = null, accountStatus = null, search = null) => {
+    const params = new URLSearchParams({ page: page.toString(), size: size.toString() });
+    if (role) params.append('role', role);
+    if (accountStatus) params.append('accountStatus', accountStatus);
+    if (search) params.append('search', search);
+    const res = await api.get(`/admin/users?${params.toString()}`);
     return res.data.data;
   },
   updateUserStatus: async (userID, status) => {

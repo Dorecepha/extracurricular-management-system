@@ -8,7 +8,7 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
-@Service
+@Service // DNA: This remains the single active implementation
 @RequiredArgsConstructor
 @Slf4j
 public class OutlookEmailAdapter implements EmailService {
@@ -16,20 +16,22 @@ public class OutlookEmailAdapter implements EmailService {
     private final JavaMailSender mailSender;
 
     @Override
-    @Async // DNA: NFR-082 Compliance
+    @Async // DNA: Background processing
     public void sendNotification(String to, String subject, String body) {
         try {
             SimpleMailMessage message = new SimpleMailMessage();
-            message.setFrom("ems-portal@university.edu");
+            
+            // DNA: This MUST match your spring.mail.username precisely
+            message.setFrom("your-name@gmail.com"); 
+            
             message.setTo(to);
             message.setSubject("[EMS] " + subject);
             message.setText(body);
 
             mailSender.send(message);
-            log.info("Email successfully sent to: {}", to);
+            log.info("MAIL SUCCESS: Email delivered to {}", to);
         } catch (Exception e) {
-            // DNA: LOG failure but do not throw exception to avoid rolling back DB
-            log.error("Failed to send email to {}: {}", to, e.getMessage());
+            log.error("MAIL FAILURE: Delivery failed for {}. Error: {}", to, e.getMessage());
         }
     }
 }

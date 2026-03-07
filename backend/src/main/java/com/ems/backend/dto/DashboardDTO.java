@@ -4,15 +4,15 @@ import com.ems.backend.enums.ApprovalStatus;
 import com.ems.backend.dto.EventDTO;
 import com.ems.backend.dto.ProposalDTO;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
 import java.util.List;
 import java.util.Map;
 
 @Data
-@Builder
+@SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
 public class DashboardDTO {
