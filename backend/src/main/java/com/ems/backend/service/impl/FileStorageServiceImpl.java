@@ -26,6 +26,11 @@ public class FileStorageServiceImpl implements FileStorageService {
 
     @Override
     public String storeFiles(MultipartFile[] files) {
+        return storeFilesInFolder(files, "proposals");
+    }
+
+    @Override
+    public String storeFilesInFolder(MultipartFile[] files, String folder) {
         if (files == null || files.length == 0) {
             return "[]";
         }
@@ -33,18 +38,26 @@ public class FileStorageServiceImpl implements FileStorageService {
         List<Map<String, String>> metadata = new ArrayList<>();
 
         try {
-            Path uploadPath = Paths.get(uploadDir);
+            String dir = "uploads/" + folder + "/";
+            Path uploadPath = Paths.get(dir);
             if (!Files.exists(uploadPath)) {
                 Files.createDirectories(uploadPath);
             }
 
             for (MultipartFile file : files) {
-                String fileName = UUID.randomUUID() + "_" + file.getOriginalFilename();
-                Files.copy(file.getInputStream(), uploadPath.resolve(fileName), StandardCopyOption.REPLACE_EXISTING);
+                String originalFilename = file.getOriginalFilename() != null
+                        ? Paths.get(file.getOriginalFilename()).getFileName().toString()
+                        : "file";
+                String fileName = UUID.randomUUID() + "_" + originalFilename;
+                Path resolvedPath = uploadPath.resolve(fileName).normalize();
+                if (!resolvedPath.startsWith(uploadPath.toAbsolutePath().normalize())) {
+                    throw new RuntimeException("Invalid file path detected");
+                }
+                Files.copy(file.getInputStream(), resolvedPath, StandardCopyOption.REPLACE_EXISTING);
 
                 Map<String, String> fileInfo = new HashMap<>();
                 fileInfo.put("name", file.getOriginalFilename());
-                fileInfo.put("path", uploadDir + fileName);
+                fileInfo.put("path", dir + fileName);
                 fileInfo.put("size", (file.getSize() / 1024) + " KB");
                 metadata.add(fileInfo);
             }
@@ -52,6 +65,39 @@ public class FileStorageServiceImpl implements FileStorageService {
             return objectMapper.writeValueAsString(metadata);
         } catch (Exception e) {
             throw new RuntimeException("Could not store files: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public Map<String, String> storeSingleFile(MultipartFile file, String folder) {
+        if (file == null || file.isEmpty()) {
+            return null;
+        }
+
+        try {
+            String dir = "uploads/" + folder + "/";
+            Path uploadPath = Paths.get(dir);
+            if (!Files.exists(uploadPath)) {
+                Files.createDirectories(uploadPath);
+            }
+
+            String originalFilename = file.getOriginalFilename() != null
+                    ? Paths.get(file.getOriginalFilename()).getFileName().toString()
+                    : "file";
+            String fileName = UUID.randomUUID() + "_" + originalFilename;
+            Path resolvedPath = uploadPath.resolve(fileName).normalize();
+            if (!resolvedPath.startsWith(uploadPath.toAbsolutePath().normalize())) {
+                throw new RuntimeException("Invalid file path detected");
+            }
+            Files.copy(file.getInputStream(), resolvedPath, StandardCopyOption.REPLACE_EXISTING);
+
+            Map<String, String> fileInfo = new HashMap<>();
+            fileInfo.put("name", originalFilename);
+            fileInfo.put("path", dir + fileName);
+            fileInfo.put("size", (file.getSize() / 1024) + " KB");
+            return fileInfo;
+        } catch (Exception e) {
+            throw new RuntimeException("Could not store file: " + e.getMessage());
         }
     }
 }
