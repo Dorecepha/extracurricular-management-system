@@ -10,18 +10,25 @@ import com.ems.backend.entity.Event;
 import com.ems.backend.entity.Proposal;
 import com.ems.backend.entity.Registration;
 import com.ems.backend.entity.User;
-import com.ems.backend.enums.ApprovalStatus;
+import com.ems.backend.entity.Administrator;
+import com.ems.backend.enums.AdminDepartment;
 import com.ems.backend.enums.EventStatus;
+import com.ems.backend.enums.OrganizationType;
+import com.ems.backend.enums.ProposalStatus;
+import com.ems.backend.enums.UpdateRequestStatus;
 import com.ems.backend.enums.UserRole;
+import com.ems.backend.enums.ReportStatus;
 import com.ems.backend.repository.AuditLogRepository;
 import com.ems.backend.repository.EventUpdateRequestRepository;
 import com.ems.backend.repository.EventRepository;
+import com.ems.backend.repository.PostEventReportRepository;
 import com.ems.backend.repository.ProposalRepository;
 import com.ems.backend.repository.RegistrationRepository;
 import com.ems.backend.repository.UserRepository;
 import com.ems.backend.security.CustomUserDetails;
 import com.ems.backend.wrappers.Response;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.transaction.annotation.Transactional;
@@ -40,6 +47,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/dashboard")
 @RequiredArgsConstructor
@@ -51,21 +59,22 @@ public class DashboardController {
     private final RegistrationRepository registrationRepository;
     private final EventUpdateRequestRepository eventUpdateRequestRepository;
     private final AuditLogRepository auditLogRepository;
+    private final PostEventReportRepository reportRepository;
 
     @GetMapping("/stats")
     public ResponseEntity<Response<DashboardDTO>> getStats(
             @AuthenticationPrincipal CustomUserDetails userDetails) {
 
         User user = userDetails.getUser();
-        DashboardDTO.DashboardDTOBuilder builder = DashboardDTO.builder();
+        var builder = DashboardDTO.builder();
 
         UserRole role = user.getRole();
 
         if (role == UserRole.ADMIN) {
             long organizerCount = userRepository.countByRole(UserRole.EVENT_ORGANIZER)
                     + userRepository.countByRole(UserRole.ORGANIZER);
-            long pendingProposals = proposalRepository.countByStatus(ApprovalStatus.PENDING);
-            long pendingUpdates = eventUpdateRequestRepository.countByStatus(ApprovalStatus.PENDING);
+            long pendingProposals = countPendingProposalsForAdmin(user);
+            long pendingUpdates = eventUpdateRequestRepository.countByStatus(UpdateRequestStatus.PENDING_L1);
 
             builder.totalStudents(userRepository.countByRole(UserRole.STUDENT))
                    .totalOrganizers(organizerCount)
@@ -75,16 +84,18 @@ public class DashboardController {
                    .activeEvents(mapToEventDTOs(eventRepository.findAll()));
         } else if (role == UserRole.EVENT_ORGANIZER || role == UserRole.ORGANIZER) {
             Long organizerId = user.getUserID();
+            long pendingCount = proposalRepository.countByOrganizer_UserIDAndStatusIn(organizerId,
+                    List.of(ProposalStatus.PENDING_L1, ProposalStatus.PENDING_L2, ProposalStatus.PENDING_L3));
             builder.myActiveEvents(eventRepository.countByOrganizer_UserID(organizerId))
                    .totalRegistrationsForMyEvents(
                            registrationRepository.countByEvent_Organizer_UserID(organizerId))
                    .myProposalStats(Map.of(
-                           ApprovalStatus.APPROVED.name(),
-                           proposalRepository.countByOrganizer_UserIDAndStatus(organizerId, ApprovalStatus.APPROVED),
-                           ApprovalStatus.PENDING.name(),
-                           proposalRepository.countByOrganizer_UserIDAndStatus(organizerId, ApprovalStatus.PENDING),
-                           ApprovalStatus.REJECTED.name(),
-                           proposalRepository.countByOrganizer_UserIDAndStatus(organizerId, ApprovalStatus.REJECTED)
+                           "APPROVED",
+                           proposalRepository.countByOrganizer_UserIDAndStatus(organizerId, ProposalStatus.APPROVED),
+                           "PENDING",
+                           pendingCount,
+                           "REJECTED",
+                           proposalRepository.countByOrganizer_UserIDAndStatus(organizerId, ProposalStatus.REJECTED)
                    ))
                    .activeEvents(mapToEventDTOs(eventRepository.findByOrganizer_UserID(organizerId)))
                    .myProposals(mapToProposalDTOs(proposalRepository.findByOrganizer_UserID(organizerId)));
@@ -116,13 +127,27 @@ public class DashboardController {
         if (role == UserRole.ADMIN) {
             long organizerCount = userRepository.countByRole(UserRole.EVENT_ORGANIZER)
                     + userRepository.countByRole(UserRole.ORGANIZER);
-            long pendingProposals = proposalRepository.countByStatus(ApprovalStatus.PENDING);
-            long pendingUpdates = eventUpdateRequestRepository.countByStatus(ApprovalStatus.PENDING);
+            long pendingProposals = countPendingProposalsForAdmin(user);
+            long pendingUpdates = eventUpdateRequestRepository.countByStatus(UpdateRequestStatus.PENDING_L1);
+
+            long pendingReports = 0L;
+            if (user instanceof Administrator admin && admin.getDepartment() != null) {
+                OrganizationType reportOrgType = switch (admin.getDepartment()) {
+                    case YOUTH_UNION -> OrganizationType.YOUTH_UNION;
+                    case STUDENT_ASSOCIATION -> OrganizationType.STUDENT_ASSOCIATION;
+                    default -> null;
+                };
+                if (reportOrgType != null) {
+                    pendingReports = reportRepository.countByStatusInAndEventType(
+                            List.of(ReportStatus.SUBMITTED, ReportStatus.LATE_SUBMITTED), reportOrgType);
+                }
+            }
 
             builder.totalStudents(userRepository.countByRole(UserRole.STUDENT))
                    .totalOrganizers(organizerCount)
                    .pendingProposalsCount(pendingProposals)
                    .pendingUpdatesCount(pendingUpdates)
+                   .pendingReportsCount(pendingReports)
                    .activeEventsCount(eventRepository.countByStatus(EventStatus.UPCOMING))
                    .activeEvents(mapToEventDTOs(eventRepository.findAll()));
 
@@ -141,6 +166,8 @@ public class DashboardController {
         } else if (role == UserRole.EVENT_ORGANIZER || role == UserRole.ORGANIZER) {
             Long organizerId = user.getUserID();
             List<Event> organizerEvents = eventRepository.findByOrganizer_UserID(organizerId);
+            long pendingCountV2 = proposalRepository.countByOrganizer_UserIDAndStatusIn(organizerId,
+                    List.of(ProposalStatus.PENDING_L1, ProposalStatus.PENDING_L2, ProposalStatus.PENDING_L3));
 
             builder.myActiveEvents(eventRepository.countByOrganizer_UserIDAndStatusIn(
                            organizerId,
@@ -149,12 +176,12 @@ public class DashboardController {
                    .totalRegistrationsForMyEvents(
                            registrationRepository.countByEvent_Organizer_UserID(organizerId))
                    .myProposalStats(Map.of(
-                           ApprovalStatus.APPROVED.name(),
-                           proposalRepository.countByOrganizer_UserIDAndStatus(organizerId, ApprovalStatus.APPROVED),
-                           ApprovalStatus.PENDING.name(),
-                           proposalRepository.countByOrganizer_UserIDAndStatus(organizerId, ApprovalStatus.PENDING),
-                           ApprovalStatus.REJECTED.name(),
-                           proposalRepository.countByOrganizer_UserIDAndStatus(organizerId, ApprovalStatus.REJECTED)
+                           "APPROVED",
+                           proposalRepository.countByOrganizer_UserIDAndStatus(organizerId, ProposalStatus.APPROVED),
+                           "PENDING",
+                           pendingCountV2,
+                           "REJECTED",
+                           proposalRepository.countByOrganizer_UserIDAndStatus(organizerId, ProposalStatus.REJECTED)
                    ))
                    .activeEvents(mapToEventDTOs(organizerEvents.stream()
                            .filter(e -> e.getStatus() == EventStatus.UPCOMING || e.getStatus() == EventStatus.ONGOING)
@@ -185,7 +212,9 @@ public class DashboardController {
             // Calculate oldest pending proposal age
             List<Proposal> pendingProposals = proposalRepository
                     .findByOrganizer_UserID(organizerId).stream()
-                    .filter(p -> p.getStatus() == ApprovalStatus.PENDING)
+                    .filter(p -> p.getStatus() == ProposalStatus.PENDING_L1
+                            || p.getStatus() == ProposalStatus.PENDING_L2
+                            || p.getStatus() == ProposalStatus.PENDING_L3)
                     .toList();
 
             if (!pendingProposals.isEmpty()) {
@@ -294,8 +323,10 @@ public class DashboardController {
                     builder.organizerName(firstName + " " + lastName);
                 }
             }
+        } catch (jakarta.persistence.EntityNotFoundException e) {
+            log.warn("Data integrity issue: Event {} references a non-existent organizer", event.getEventID());
         } catch (Exception e) {
-            // Skip organizer details if lazy loading fails
+            log.error("Error fetching organizer details for event {}: {}", event.getEventID(), e.getMessage());
         }
 
         return builder.build();
@@ -335,8 +366,10 @@ public class DashboardController {
                     builder.organizerName(firstName + " " + lastName);
                 }
             }
+        } catch (jakarta.persistence.EntityNotFoundException e) {
+            log.warn("Data integrity issue: Proposal {} references a non-existent entity (organizer or reviewer)", proposal.getProposalID());
         } catch (Exception e) {
-            // Skip lazy-loaded details if they fail
+            log.error("Error fetching lazy-loaded details for proposal {}: {}", proposal.getProposalID(), e.getMessage());
         }
 
         return builder.build();
@@ -377,6 +410,20 @@ public class DashboardController {
             return action.substring(startIndex);
         }
         return log.getEntityType() != null ? log.getEntityType() : "Unknown";
+    }
+
+    private long countPendingProposalsForAdmin(User user) {
+        if (!(user instanceof Administrator admin) || admin.getDepartment() == null) {
+            return proposalRepository.countByStatus(ProposalStatus.PENDING_L1);
+        }
+        return switch (admin.getDepartment()) {
+            case YOUTH_UNION -> proposalRepository.countByStatusAndOrganizationType(
+                    ProposalStatus.PENDING_L1, OrganizationType.YOUTH_UNION);
+            case STUDENT_ASSOCIATION -> proposalRepository.countByStatusAndOrganizationType(
+                    ProposalStatus.PENDING_L1, OrganizationType.STUDENT_ASSOCIATION);
+            case FACULTY -> proposalRepository.countByStatus(ProposalStatus.PENDING_L2);
+            case RECTOR -> proposalRepository.countByStatus(ProposalStatus.PENDING_L3);
+        };
     }
 
     private String buildNavigationUrl(AuditLog log) {

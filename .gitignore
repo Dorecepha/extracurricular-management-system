@@ -1,4 +1,11 @@
 # ============================================================
+# Secrets / Environment Config
+# ============================================================
+backend/src/main/resources/application.properties
+backend/src/test/resources/application.properties
+frontend/ems-frontend/.env
+
+# ============================================================
 # Java / Maven
 # ============================================================
 target/
@@ -119,9 +126,6 @@ Desktop.ini
 $RECYCLE.BIN/
 *.lnk
 
-# Linux
-*~
-
 # ============================================================
 # Load Testing (k6 results — not source files)
 # ============================================================
@@ -138,4 +142,3 @@ load-tests/**/*.csv
 *.bak
 *.orig
 *.rej
-.cache/
