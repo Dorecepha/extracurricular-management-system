@@ -2,13 +2,19 @@ package com.ems.backend.controller;
 
 import com.ems.backend.dto.ProposalDTO;
 import com.ems.backend.dto.ReviewQueueItemDTO;
+import com.ems.backend.entity.Administrator;
+import com.ems.backend.entity.User;
+import com.ems.backend.enums.AdminDepartment;
 import com.ems.backend.enums.ReviewType;
+import com.ems.backend.exception.ForbiddenException;
+import com.ems.backend.security.CustomUserDetails;
 import com.ems.backend.service.EventUpdateRequestService;
 import com.ems.backend.service.ProposalService;
 import com.ems.backend.wrappers.Response;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
@@ -23,14 +29,18 @@ public class AdminController {
 
     private final ProposalService proposalService;
     private final EventUpdateRequestService eventUpdateRequestService;
+
     public record RejectionRequest(String rejectionReason) {}
+    public record ApprovalRequest(String comment) {}
 
     @GetMapping("/proposals")
-    public ResponseEntity<Response<List<ProposalDTO>>> getPendingProposals() {
-        List<ProposalDTO> proposals = proposalService.getPendingProposals();
+    public ResponseEntity<Response<List<ProposalDTO>>> getPendingProposals(
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        AdminDepartment dept = resolveAdminDepartment(userDetails);
+        List<ProposalDTO> proposals = proposalService.getProposalsForAdmin(dept);
         return ResponseEntity.ok(new Response<>(
                 200,
-                "Pending proposals retrieved successfully",
+                "Proposals for department " + dept.name() + " retrieved successfully",
                 proposals
         ));
     }
@@ -46,18 +56,22 @@ public class AdminController {
     }
 
     @PutMapping("/proposals/{proposalID}/approve")
-    public ResponseEntity<Response<Void>> approve(@PathVariable Long proposalID) {
-        proposalService.approveProposal(proposalID);
+    public ResponseEntity<Response<Void>> approve(
+            @PathVariable Long proposalID,
+            @RequestBody(required = false) ApprovalRequest request) {
+        String comment = (request != null) ? request.comment() : null;
+        proposalService.approveProposal(proposalID, comment);
         return ResponseEntity.ok(new Response<>(
                 200,
-                "Proposal approved and Event created",
+                "Proposal approved successfully",
                 null
         ));
     }
 
     @PutMapping("/proposals/{proposalID}/reject")
-    public ResponseEntity<Response<Void>> reject(@PathVariable Long proposalID,
-                                                 @RequestBody RejectionRequest request) {
+    public ResponseEntity<Response<Void>> reject(
+            @PathVariable Long proposalID,
+            @RequestBody RejectionRequest request) {
         proposalService.rejectProposal(proposalID, request.rejectionReason());
         return ResponseEntity.ok(new Response<>(
                 200,
@@ -67,10 +81,12 @@ public class AdminController {
     }
 
     @GetMapping("/queue")
-    public ResponseEntity<Response<List<ReviewQueueItemDTO>>> getUnifiedQueue() {
+    public ResponseEntity<Response<List<ReviewQueueItemDTO>>> getUnifiedQueue(
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
         List<ReviewQueueItemDTO> queue = new ArrayList<>();
 
-        proposalService.getPendingProposals().forEach(proposal ->
+        AdminDepartment dept = resolveAdminDepartment(userDetails);
+        proposalService.getProposalsForAdmin(dept).forEach(proposal ->
                 queue.add(ReviewQueueItemDTO.builder()
                         .id(proposal.getProposalID())
                         .title(proposal.getTitle())
@@ -79,7 +95,7 @@ public class AdminController {
                         .build())
         );
 
-        eventUpdateRequestService.getPendingRequests().forEach(update ->
+        eventUpdateRequestService.getPendingRequestsForAdmin(extractAdmin(userDetails)).forEach(update ->
                 queue.add(ReviewQueueItemDTO.builder()
                         .id(update.getRequestID())
                         .eventID(update.getEventID())
@@ -103,4 +119,21 @@ public class AdminController {
                 queue
         ));
     }
+
+    private AdminDepartment resolveAdminDepartment(CustomUserDetails userDetails) {
+        Administrator admin = extractAdmin(userDetails);
+        if (admin.getDepartment() == null) {
+            throw new ForbiddenException("Administrator has no department assigned.");
+        }
+        return admin.getDepartment();
+    }
+
+    private Administrator extractAdmin(CustomUserDetails userDetails) {
+        User user = userDetails.getUser();
+        if (!(user instanceof Administrator admin)) {
+            throw new ForbiddenException("Only administrators can access this resource");
+        }
+        return admin;
+    }
 }
+
