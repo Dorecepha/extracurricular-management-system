@@ -1,0 +1,57 @@
+backend/src/main/java/com/ems/backend/security/SecurityConfig.java (42)
+security-high high
+
+The SecurityConfig allows public access to all files under /api/uploads/**. Since post-event reports store sensitive photos and feedback files in predictable paths (e.g., reports/{eventID}/photos/{filename}), an attacker can easily guess these paths and download sensitive event data and PII without authentication. Restrict access to /api/uploads/** and implement an authorized file serving endpoint that checks user permissions before serving sensitive files.
+
+backend/src/main/java/com/ems/backend/controller/PostEventReportController.java (255-264)
+high
+
+The audit log for submitting a post-event report appears to have been removed. This is a critical action that should be logged for tracking and auditing purposes. Please restore this logging call.
+
+backend/src/main/java/com/ems/backend/controller/PostEventReportController.java (685-686)
+security-medium medium
+
+The downloadCertTemplate endpoint accepts userID and userEmail as request parameters and uses them directly in audit logs. This allows an authenticated organizer to spoof the audit trail by attributing the download to another user. Always use the authenticated user's information from the SecurityContext for audit logging.
+
+backend/src/main/java/com/ems/backend/controller/DashboardController.java (93-98)
+medium
+
+Using string literals like "APPROVED" and "REJECTED" for map keys is less maintainable than using enum names. If the enum values change, these strings will not be updated automatically, which could lead to subtle bugs. It's better to derive these from the ProposalStatus enum.
+
+                           ProposalStatus.APPROVED.name(),
+                           proposalRepository.countByOrganizer_UserIDAndStatus(organizerId, ProposalStatus.APPROVED),
+                           "PENDING",
+                           pendingCount,
+                           ProposalStatus.REJECTED.name(),
+                           proposalRepository.countByOrganizer_UserIDAndStatus(organizerId, ProposalStatus.REJECTED)
+backend/src/main/java/com/ems/backend/controller/DashboardController.java (179-184)
+medium
+
+Using string literals like "APPROVED" and "REJECTED" for map keys is less maintainable than using enum names. If the enum values change, these strings will not be updated automatically, which could lead to subtle bugs. It's better to derive these from the ProposalStatus enum.
+
+                           ProposalStatus.APPROVED.name(),
+                           proposalRepository.countByOrganizer_UserIDAndStatus(organizerId, ProposalStatus.APPROVED),
+                           "PENDING",
+                           pendingCountV2,
+                           ProposalStatus.REJECTED.name(),
+                           proposalRepository.countByOrganizer_UserIDAndStatus(organizerId, ProposalStatus.REJECTED)
+backend/src/main/java/com/ems/backend/controller/DashboardController.java (215-217)
+medium
+
+This filter condition with multiple || operators can be simplified by using a List and contains(). This improves readability and makes it easier to modify if more pending statuses are added in the future.
+
+                    .filter(p -> List.of(ProposalStatus.PENDING_L1, ProposalStatus.PENDING_L2, ProposalStatus.PENDING_L3).contains(p.getStatus()))
+backend/src/main/java/com/ems/backend/controller/DashboardController.java (419-426)
+medium
+
+The switch statement on admin.getDepartment() is not exhaustive. If a new value is added to the AdminDepartment enum in the future, this will cause a runtime error. It's safer to add a default case to handle unexpected values gracefully.
+
+        return switch (admin.getDepartment()) {
+            case YOUTH_UNION -> proposalRepository.countByStatusAndOrganizationType(
+                    ProposalStatus.PENDING_L1, OrganizationType.YOUTH_UNION);
+            case STUDENT_ASSOCIATION -> proposalRepository.countByStatusAndOrganizationType(
+                    ProposalStatus.PENDING_L1, OrganizationType.STUDENT_ASSOCIATION);
+            case FACULTY -> proposalRepository.countByStatus(ProposalStatus.PENDING_L2);
+            case RECTOR -> proposalRepository.countByStatus(ProposalStatus.PENDING_L3);
+            default -> 0L;
+        };

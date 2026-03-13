@@ -1,0 +1,521 @@
+%!TeX encoding = UTF-8
+%!TeX program = pdflatex
+% EMS Scalability Enhancement Proposal - LaTeX Template
+% Simple, clean template for quick professor approval
+% Compatible with WinEdt 11
+
+\documentclass[12pt,a4paper,oneside]{report}
+
+% ============================================================================
+% PACKAGES
+% ============================================================================
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[margin=1in]{geometry}
+\usepackage{setspace}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{array}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{fancyhdr}
+\usepackage{float}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{listings}
+\usepackage{xspace}
+\usepackage{enumerate}
+\usepackage{url}
+\usepackage{natbib}
+\usepackage{tocloft}
+\usepackage{tikz}
+\usepackage{pdflscape}
+\usepackage{enumitem}
+\usepackage{threeparttable}
+\usepackage{tocbibind}
+\usepackage{calc}
+
+% ============================================================================
+% CONFIGURATION
+% ============================================================================
+
+% Hyperlink colors (blue links, no boxes)
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=blue,
+    urlcolor=blue,
+    citecolor=blue
+}
+
+% Pagestyle
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[R]{\thepage}
+\fancyhead[L]{EMS Scalability Enhancement}
+\fancyfoot[C]{\thepage}
+
+\onehalfspacing
+
+\setcounter{secnumdepth}{3}
+\tocbibind
+
+% Define custom colors
+\definecolor{gray10}{gray}{10}
+
+% Code listing style (for SQL, Java, etc.)
+\lstset{
+    basicstyle=\small\ttfamily,
+    breaklines=true,
+    breakatwhitespace=true,
+    frame=single,
+    numbers=left,
+    numberstyle=\tiny,
+    keywordstyle=\color{blue},
+    commentstyle=\color{gray},
+    stringstyle=\color{red},
+    language=Java,
+    showstringspaces=false
+}
+
+% ============================================================================
+% CUSTOM COMMANDS
+% ============================================================================
+
+% Highlight box for key metrics
+\newcommand{\metricbox}[2]{%
+    \fcolorbox{black}{gray10}{%
+        \parbox{0.45\textwidth}{%
+            \textbf{#1:} #2%
+        }%
+    }%
+}
+
+% ============================================================================
+% DOCUMENT METADATA
+% ============================================================================
+
+\title{\LARGE\textbf{EMS Scalability Enhancement Proposal:\\
+Week 2 Backend Optimization Plan}}
+
+\author{
+    \Large [Your Name] \\
+    \large Sophomore, Computer Science \\
+    \large [University Name] \\
+    \large Email: [your.email@university.edu] \\
+    \large Student ID: [Your Student ID]
+}
+
+\date{\Large February 13, 2026}
+
+% ============================================================================
+% DOCUMENT CONTENT
+% ============================================================================
+
+\begin{document}
+
+\maketitle
+
+% ============================================================================
+% ABSTRACT
+% ============================================================================
+
+\begin{abstract}
+
+\noindent\textbf{Problem Statement:} The EMS backend (Spring Boot 3.3.5 + MySQL 8.0) currently handles \textbf{100-150 concurrent users} but fails critically under realistic university load. Baseline load testing revealed the system cannot support peak registration periods, where 500-2,500 concurrent students attempt to register for popular events.
+
+\vspace{0.5em}
+\noindent
+\metricbox{Critical Gap}{1.8\% success rate under high contention}
+\hfill
+\metricbox{Target}{98-100\% success rate after optimization}
+
+\noindent\textbf{Root Cause Analysis:} Systematic load testing using k6 identified \textbf{five specific bottlenecks}:
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{@{}clll@{}}
+\toprule
+\textbf{Priority} & \textbf{Bottleneck} & \textbf{Current State} & \textbf{Impact} \\
+\midrule
+\textbf{P1 - CRITICAL} & Connection Pool & 10 connections & \textcolor{red}{82.8\% timeout errors} \\
+\textbf{P2 - HIGH} & JWT DB Queries & Query on every request & 46,232 redundant queries \\
+\textbf{P3 - MEDIUM} & Missing Indexes & Full table scans & 10-50ms wasted per query \\
+\textbf{P4 - MEDIUM} & Fixed Backoff & 50ms fixed delay & Retry collisions \\
+\textbf{P5 - LOW} & Synchronous Email & Blocks threads & 300ms added latency \\
+\bottomrule
+\end{tabular}
+\caption{Identified Bottlenecks (Prioritized by Impact)}
+\end{table}
+
+\noindent\textbf{Key Success:} Optimistic locking with \texttt{@Version} annotation \textbf{prevented all capacity violations} (zero overbooking across 2,766 registrations tested). The concurrency control mechanism is production-ready.
+
+\noindent\textbf{Proposed Solution:} Implement \textbf{five sequential optimizations} over 7 days (Week 2: Days 8-14) to improve system capacity from 150 to \textbf{650-750 concurrent users} (5-7x improvement).
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{@{}llll@{}}
+\toprule
+\textbf{Optimization} & \textbf{Time} & \textbf{Capacity Gain} & \textbf{Technical Change} \\
+\midrule
+P1: Connection Pool & 1 hour & +300 users & \texttt{max-pool-size: 10 to 50} \\
+P2: JWT Optimization & 4 hours & +150 users & Add userId/role to token \\
+P3: Database Indexes & 2 hours & +75 users & 4 CREATE INDEX statements \\
+P4: Exponential Backoff & 2 hours & +40 users & Retry logic with jitter \\
+P5: Async Email & 3 hours & +35 users & \texttt{@Async} + thread pool \\
+\midrule
+\textbf{Total} & \textbf{12 hours} & \textbf{+500-600 users} & \textbf{5-7x improvement} \\
+\bottomrule
+\end{tabular}
+\caption{Week 2 Optimization Plan with Expected Outcomes}
+\end{table}
+
+\noindent\textbf{Expected Week 2 Results:}
+\begin{itemize}[leftmargin=1.5em,topsep=0.3em,itemsep=0.2em]
+    \item Scenario 1 success rate: 1.8\% to \textbf{98-100\%} (54x improvement)
+    \item Scenario 2 success rate: 12.5\% to \textbf{75-85\%} (6-7x improvement)
+    \item Average response time: 9.15s to \textbf{less than 200ms} (45x improvement)
+    \item HTTP failure rate: 98\% to \textbf{less than 2\%} (49x reduction)
+\end{itemize}
+
+\noindent\textbf{Request for Approval:}
+
+\textbf{Seeking permission to:}
+\begin{enumerate}[leftmargin=1.5em,topsep=0.3em,itemsep=0.2em]
+    \item Proceed with Week 2 optimizations (Days 8-14)
+    \item Modify backend configuration (\texttt{application.properties})
+    \item Refactor JWT authentication logic (add claims to token)
+    \item Add database indexes to production schema
+    \item Re-run load tests to validate improvements
+\end{enumerate}
+
+\textbf{No architectural changes required} -- all optimizations are configuration updates and code-level improvements to existing components.
+
+\end{abstract}
+
+\clearpage
+
+% ============================================================================
+% TABLE OF CONTENTS
+% ============================================================================
+
+\tableofcontents
+
+\clearpage
+
+% ============================================================================
+% CHAPTER 1: INTRODUCTION
+% ============================================================================
+
+\chapter{Introduction}
+
+\section{Project Context}
+
+The \textbf{Extracurricular Management System (EMS)} is a university event management platform that automates the complete event lifecycle:
+
+\begin{itemize}[leftmargin=1.5em,topsep=0.3em,itemsep=0.2em]
+    \item \textbf{Event Organizers} create event proposals
+    \item \textbf{Administrators} review and approve proposals
+    \item \textbf{Students} register for approved events with real-time capacity enforcement
+\end{itemize}
+
+\textbf{Current Project Status:}
+\begin{itemize}[leftmargin=1.5em,topsep=0.3em,itemsep=0.2em]
+    \item \textbf{Phase:} OOAD design complete (90\%), transitioning to production implementation
+    \item \textbf{Technical Stack:} Spring Boot 3.3.5 (Java 21) + React 19 + MySQL 8.0
+    \item \textbf{Core Features:} JWT authentication, role-based access control, optimistic locking
+    \item \textbf{Documentation:} SRS v5 (92/100), complete use case diagrams, sequence diagrams
+\end{itemize}
+
+\section{Motivation for Scalability Enhancement}
+
+\textbf{Academic Context:}
+
+As part of the OOAD final project, demonstrating production readiness requires validating that the system can handle realistic university workloads. Load testing is a critical phase of software engineering to identify and resolve performance bottlenecks before deployment.
+
+\vspace{0.5em}
+\textbf{Real-World Need:}
+
+Universities experience \textbf{peak registration periods} where hundreds of students simultaneously attempt to register for popular events (e.g., semester start, high-demand guest speakers, limited-capacity workshops). The current system capacity (100-150 users) is insufficient for a mid-sized university (5,000-10,000 students).
+
+\vspace{0.5em}
+\textbf{Technical Challenge:}
+
+The system must handle:
+\begin{itemize}[leftmargin=1.5em,topsep=0.3em,itemsep=0.2em]
+    \item \textbf{Flash sale scenarios:} 500 students competing for 50 spots in a popular event
+    \item \textbf{Distributed load:} 500 concurrent students registering across multiple events
+    \item \textbf{Concurrency correctness:} Zero capacity violations (no overbooking)
+    \item \textbf{Response time:} Less than 500ms for acceptable user experience
+\end{itemize}
+
+\section{Objectives}
+
+\textbf{Primary Objective:}
+
+Scale the EMS backend to handle \textbf{2,500 concurrent users} during peak registration periods while maintaining data integrity (no capacity violations) and acceptable response times (less than 500ms).
+
+\vspace{0.5em}
+\textbf{Week 2 Objective (This Proposal):}
+
+Achieve \textbf{650-750 concurrent users} (5-7x improvement) through backend optimizations:
+
+\begin{enumerate}[leftmargin=1.5em,topsep=0.3em,itemsep=0.2em]
+    \item Expand HikariCP connection pool (10 to 50 connections)
+    \item Optimize JWT authentication (eliminate database queries)
+    \item Add database indexes (speed up lookups)
+    \item Implement exponential backoff (reduce retry collisions)
+    \item Make email notifications asynchronous (free request threads)
+\end{enumerate}
+
+\textbf{Success Criteria:}
+\begin{itemize}[leftmargin=1.5em,topsep=0.3em,itemsep=0.2em]
+    \item Scenario 1 (single event) success rate greater than 95\%
+    \item Scenario 2 (distributed load) success rate greater than 85\%
+    \item Average response time less than 200ms
+    \item HTTP failure rate less than 2\%
+    \item Zero capacity violations maintained (optimistic locking continues to work)
+\end{itemize}
+
+\section{Methodology}
+
+\textbf{Approach:} Systematic, data-driven performance engineering following industry best practices:
+
+\begin{enumerate}[leftmargin=1.5em,topsep=0.3em,itemsep=0.3em]
+    \item \textbf{Measure (Week 1 - Complete):}
+    \begin{itemize}[topsep=0.2em,itemsep=0.1em]
+        \item Establish baseline performance metrics
+        \item Identify bottlenecks through load testing
+        \item Quantify impact of each bottleneck
+    \end{itemize}
+
+    \item \textbf{Optimize (Week 2 - This Proposal):}
+    \begin{itemize}[topsep=0.2em,itemsep=0.1em]
+        \item Prioritize fixes by ROI (impact / effort)
+        \item Implement optimizations sequentially
+        \item Validate each optimization independently
+    \end{itemize}
+
+    \item \textbf{Validate (Week 2 - Days 12-14):}
+    \begin{itemize}[topsep=0.2em,itemsep=0.1em]
+        \item Re-run identical load tests
+        \item Compare before/after metrics
+        \item Document improvements and lessons learned
+    \end{itemize}
+
+    \item \textbf{Scale (Week 3-4 - Future):}
+    \begin{itemize}[topsep=0.2em,itemsep=0.1em]
+        \item Horizontal scaling (multiple backend instances)
+        \item Advanced caching (Redis)
+        \item Achieve final 2,500-user target
+    \end{itemize}
+\end{enumerate}
+
+\textbf{Load Testing Tool:} k6 v1.5.0 (industry-standard, open-source)
+
+\textbf{Test Environment:} Localhost (eliminates network latency as variable, focuses on application bottlenecks)
+
+\textbf{Test Scenarios:}
+\begin{itemize}[leftmargin=1.5em,topsep=0.3em,itemsep=0.2em]
+    \item \textbf{Scenario 1 (Extreme Contention):} 500 VUs (virtual users) simultaneously register for 1 event with 50 capacity
+    \item \textbf{Scenario 2 (Distributed Load):} 0 to 500 VUs over 5 minutes, registering across 50 events
+\end{itemize}
+
+\section{Scope}
+
+\textbf{In Scope:}
+\begin{itemize}[leftmargin=1.5em,topsep=0.3em,itemsep=0.2em]
+    \item Backend performance optimizations (Spring Boot + MySQL)
+    \item HikariCP connection pool configuration
+    \item JWT token structure changes
+    \item Database schema indexing
+    \item Retry logic improvements
+    \item Email service asynchronization
+\end{itemize}
+
+\textbf{Out of Scope:}
+\begin{itemize}[leftmargin=1.5em,topsep=0.3em,itemsep=0.2em]
+    \item Frontend performance optimization (React rendering, bundle size)
+    \item Network optimization (CDN, load balancing)
+    \item Database architecture changes (sharding, replication)
+    \item Cloud deployment (addressed in Week 3-4)
+    \item Security enhancements (separate audit planned)
+\end{itemize}
+
+\section{Document Structure}
+
+This proposal consists of three complementary documents:
+
+\begin{enumerate}[leftmargin=1.5em,topsep=0.3em,itemsep=0.3em]
+    \item \textbf{BASELINE\_SUMMARY.md} (Quick Reference)
+    \begin{itemize}[topsep=0.2em,itemsep=0.1em]
+        \item 1-page overview of key findings
+        \item Metrics tables for quick scanning
+        \item Week 2 optimization checklist
+    \end{itemize}
+
+    \item \textbf{BASELINE\_RESULTS.md} (Detailed Technical Report)
+    \begin{itemize}[topsep=0.2em,itemsep=0.1em]
+        \item Complete test configuration and execution details
+        \item Scenario 1 and 2 results with analysis
+        \item Infrastructure metrics (HikariCP, MySQL, JVM)
+        \item Optimistic locking validation
+        \item Code locations and SQL queries
+    \end{itemize}
+
+    \item \textbf{BASELINE\_SUGGESTIONS.md} (Implementation Roadmap)
+    \begin{itemize}[topsep=0.2em,itemsep=0.1em]
+        \item Detailed bottleneck analysis with queuing theory
+        \item Priority recommendations (P1-P5) with ROI calculations
+        \item Week 2 day-by-day implementation plan
+        \item Risk assessment and mitigation strategies
+        \item Verification strategy for post-optimization testing
+    \end{itemize}
+\end{enumerate}
+
+\textbf{This document} provides the executive overview and introduction for quick professor review and approval.
+
+\section{Why This Matters}
+
+\textbf{Engineering Maturity:}
+
+This work demonstrates application of software engineering principles learned in OOAD:
+\begin{itemize}[leftmargin=1.5em,topsep=0.3em,itemsep=0.2em]
+    \item \textbf{Separation of Concerns:} Load testing identified layer-specific bottlenecks
+    \item \textbf{Design Patterns:} Optimistic locking validated under stress
+    \item \textbf{Performance Engineering:} Systematic measurement to optimization cycle
+\end{itemize}
+
+\textbf{Production Readiness:}
+
+Real-world systems must handle peak load. This project goes beyond ``it works on my laptop'' to ``it works under university-scale concurrent load.''
+
+\textbf{Academic Contribution:}
+
+Applying queuing theory to model connection pool behavior, calculating theoretical maximum throughput, and validating predictions with empirical testing demonstrates research rigor.
+
+\section{Key Terminology}
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{@{}ll@{}}
+\toprule
+\textbf{Term} & \textbf{Definition} \\
+\midrule
+VU (Virtual User) & Simulated user in k6 load testing \\
+Concurrent Users & Users actively making requests simultaneously \\
+Connection Pool & Pre-allocated database connections (HikariCP) \\
+Optimistic Locking & Concurrency control using version numbers \\
+JWT & JSON Web Token (stateless authentication) \\
+p95 Response Time & 95th percentile response time \\
+Throughput & Requests processed per second \\
+Capacity & Max concurrent users with acceptable performance \\
+\bottomrule
+\end{tabular}
+\caption{Key Technical Terminology}
+\end{table}
+
+\clearpage
+
+% ============================================================================
+% CHAPTER 2: NEXT STEPS
+% ============================================================================
+
+\chapter{Next Steps}
+
+\section{Immediate (Pending Approval)}
+
+\begin{enumerate}[leftmargin=1.5em,topsep=0.3em,itemsep=0.2em]
+    \item Professor reviews this proposal and supporting documents
+    \item Approval to proceed with Week 2 optimizations (12 hours of work)
+    \item Begin implementation on Day 8
+\end{enumerate}
+
+\section{Week 2 Timeline (7 days)}
+
+\begin{itemize}[leftmargin=1.5em,topsep=0.3em,itemsep=0.2em]
+    \item \textbf{Days 8-11:} Implement P1-P5 optimizations (1 per day, plus async email)
+    \item \textbf{Days 12-13:} Re-run load tests, capture new metrics
+    \item \textbf{Day 14:} Document results, compare to baseline, prepare Week 3 plan
+\end{itemize}
+
+\section{Deliverable}
+
+\begin{itemize}[leftmargin=1.5em,topsep=0.3em,itemsep=0.2em]
+    \item Week 2 Results Report showing before/after comparison
+    \item Updated system capacity: 150 to 650-750 concurrent users
+    \item Recommendation for Week 3 (horizontal scaling) or further optimization
+\end{itemize}
+
+\vspace{2em}
+
+\noindent
+\textbf{Respectfully submitted for approval,} \\
+\\[1em]
+\noindent
+[Your Name] \\
+Sophomore, Computer Science \\
+[University Name] \\
+[Date]
+
+% ============================================================================
+% APPENDIX
+% ============================================================================
+
+\clearpage
+
+\appendix
+
+\chapter{Supporting Documentation}
+
+The following documents provide detailed technical analysis and are attached as appendices:
+
+\begin{enumerate}[leftmargin=1.5em,topsep=0.3em,itemsep=0.3em]
+    \item \textbf{BASELINE\_SUMMARY.md}
+
+    Quick reference showing key metrics and optimization checklist
+
+    \item \textbf{BASELINE\_RESULTS.md}
+
+    Comprehensive test results including:
+    \begin{itemize}[topsep=0.2em,itemsep=0.1em]
+        \item Scenario 1: Single Event Stress Test (500 VUs to 1 event)
+        \item Scenario 2: Distributed Load Test (500 VUs to 50 events)
+        \item Infrastructure metrics validation
+        \item Optimistic locking validation (zero capacity violations)
+    \end{itemize}
+
+    \item \textbf{BASELINE\_SUGGESTIONS.md}
+
+    Implementation roadmap including:
+    \begin{itemize}[topsep=0.2em,itemsep=0.1em]
+        \item Bottleneck deep dive with queuing theory analysis
+        \item Priority recommendations (P1-P5) with ROI calculations
+        \item Day-by-day implementation schedule
+        \item Risk assessment and mitigation strategies
+    \end{itemize}
+\end{enumerate}
+
+\chapter{Test Data Files}
+
+Available upon request:
+\begin{itemize}[leftmargin=1.5em,topsep=0.3em,itemsep=0.2em]
+    \item \texttt{scenario1-single-event.json} - k6 metrics (Scenario 1)
+    \item \texttt{scenario1-console.txt} - k6 terminal output (179KB)
+    \item \texttt{scenario2-distributed.json} - k6 metrics (Scenario 2)
+    \item \texttt{scenario2-console.txt} - k6 terminal output (142KB)
+    \item \texttt{student\_tokens.csv} - 10,000 pre-generated JWT tokens
+\end{itemize}
+
+% ============================================================================
+% END DOCUMENT
+% ============================================================================
+
+\end{document}

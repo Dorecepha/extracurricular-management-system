@@ -1,0 +1,38 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(curl:*)",
+      "Bash(python generate_test_data_sql.py:*)",
+      "Bash(mysql:*)",
+      "Bash(python:*)",
+      "Bash(k6 run:*)",
+      "Bash(tee:*)",
+      "Bash(mvn compile:*)",
+      "Bash(.mvnw compile:*)",
+      "Bash(./mvnw compile:*)",
+      "Bash(./mvnw clean:*)",
+      "Bash(.mvnw clean:*)",
+      "Bash(./mvnw spring-boot:run:*)",
+      "Bash(taskkill:*)",
+      "Bash(./mvnw test:*)",
+      "Bash(k6 version:*)"
+    ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "npx tsc --noEmit"
+          }
+        ]
+      }
+    ]
+  },
+  "enabledPlugins": {
+    "frontend-design@claude-code-plugins": true,
+    "code-review@claude-plugins-official": true
+  }
+}

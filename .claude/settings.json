@@ -1,0 +1,15 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -f pom.xml ] && echo $CLAUDE_FILE | grep -qE '\\.(java|sql)$'; then ./mvnw compile -q 2>&1 | tail -5; fi"
+          }
+        ]
+      }
+    ]
+  }
+}
