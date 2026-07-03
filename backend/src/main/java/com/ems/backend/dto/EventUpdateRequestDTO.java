@@ -1,8 +1,8 @@
 package com.ems.backend.dto;
 
-import com.ems.backend.enums.ApprovalStatus;
 import com.ems.backend.enums.EventStatus;
 import com.ems.backend.enums.OrganizationType;
+import com.ems.backend.enums.UpdateRequestStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -33,7 +33,7 @@ public class EventUpdateRequestDTO {
     private String updateReason;
     private String attachmentsJson;
 
-    private ApprovalStatus status;
+    private UpdateRequestStatus status;
     private String rejectionReason;
     private LocalDateTime submittedAt;
 }

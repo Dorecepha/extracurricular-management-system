@@ -13,8 +13,8 @@ export const adminApi = {
     const response = await api.get(`/admin/proposals/${id}`);
     return response.data.data;
   },
-  approveProposal: async (id) => {
-    const response = await api.put(`/admin/proposals/${id}/approve`);
+  approveProposal: async (id, comment = null) => {
+    const response = await api.put(`/admin/proposals/${id}/approve`, { comment });
     return response.data;
   },
   rejectProposal: async (id, rejectionReason) => {
@@ -36,5 +36,22 @@ export const adminApi = {
   updateUserRole: async (userID, role) => {
     const res = await api.put(`/admin/users/${userID}/role?role=${role}`);
     return res.data;
-  }
+  },
+  getReports: async (status = null) => {
+    const params = status ? `?status=${status}` : '';
+    const response = await api.get(`/reports${params}`);
+    return response.data.data;
+  },
+  getReportById: async (reportID) => {
+    const response = await api.get(`/reports/detail/${reportID}`);
+    return response.data.data;
+  },
+  approveReport: async (reportID, adminID) => {
+    const response = await api.post(`/reports/${reportID}/approve`, null, { params: { adminID } });
+    return response.data;
+  },
+  rejectReport: async (reportID, reason, adminID) => {
+    const response = await api.post(`/reports/${reportID}/reject`, null, { params: { reason, adminID } });
+    return response.data;
+  },
 };

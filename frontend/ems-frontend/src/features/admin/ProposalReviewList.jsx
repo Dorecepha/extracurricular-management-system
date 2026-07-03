@@ -13,7 +13,7 @@ const formatDate = (value) => {
 function ProposalReviewList() {
   const navigate = useNavigate();
 
-  const { data: queueItems, isLoading } = useQuery({
+  const { data: queueItems, isLoading, isError, error } = useQuery({
     queryKey: ['admin', 'queue'],
     queryFn: adminApi.getReviewQueue
   });
@@ -22,6 +22,15 @@ function ProposalReviewList() {
     return (
       <div className="p-20 flex justify-center">
         <Loader2 className="animate-spin text-[#1f5f89]" size={48} />
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="p-20 text-center text-red-500">
+        <p className="font-bold">Failed to load review queue.</p>
+        <p className="text-sm mt-1">{error?.message || 'Please try again.'}</p>
       </div>
     );
   }

@@ -14,7 +14,10 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 
 @Entity
-@Table(name = "events")
+@Table(name = "events", indexes = {
+        @Index(name = "idx_event_organizer_status", columnList = "organizer_id, status"),
+        @Index(name = "idx_event_date_time", columnList = "event_date, start_time, end_time")
+})
 @Data
 @Builder
 @NoArgsConstructor

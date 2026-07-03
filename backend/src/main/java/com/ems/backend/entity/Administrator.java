@@ -1,5 +1,6 @@
 package com.ems.backend.entity;
 
+import com.ems.backend.enums.AdminDepartment;
 import com.ems.backend.enums.AdminLevel;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -20,4 +21,8 @@ public class Administrator extends User {
     @Enumerated(EnumType.STRING)
     @Column(name = "admin_level")
     private AdminLevel adminLevel;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "admin_department")
+    private AdminDepartment department;
 }

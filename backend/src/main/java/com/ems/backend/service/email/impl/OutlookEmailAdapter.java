@@ -16,13 +16,13 @@ public class OutlookEmailAdapter implements EmailService {
     private final JavaMailSender mailSender;
 
     @Override
-    @Async // DNA: Background processing
+    @Async("emailTaskExecutor") // Use custom thread pool from AsyncConfig
     public void sendNotification(String to, String subject, String body) {
         try {
             SimpleMailMessage message = new SimpleMailMessage();
-            
+
             // DNA: This MUST match your spring.mail.username precisely
-            message.setFrom("your-name@gmail.com"); 
+            message.setFrom("dorecefa2006@gmail.com"); 
             
             message.setTo(to);
             message.setSubject("[EMS] " + subject);

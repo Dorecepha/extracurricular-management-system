@@ -12,5 +12,7 @@ public interface EventService {
 
     List<EventDTO> getEventsByOrganizer(Long organizerID);
 
+    List<EventDTO> getCompletedEventsByOrganizer(Long organizerID);
+
     EventDTO getEventByID(Long eventID, Long currentUserID);
 }

@@ -1,7 +1,7 @@
 package com.ems.backend.dto;
 
-import com.ems.backend.enums.ApprovalStatus;
 import com.ems.backend.enums.OrganizationType;
+import com.ems.backend.enums.ProposalStatus;
 import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
@@ -14,6 +14,7 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.List;
 
 @Data
 @Builder
@@ -50,7 +51,9 @@ public class ProposalDTO {
 
     private String attachmentsJson;
 
-    private ApprovalStatus status;
+    private ProposalStatus status;
+
+    private List<ProposalApprovalDTO> approvalHistory;
 
     private LocalDateTime submittedAt;
 

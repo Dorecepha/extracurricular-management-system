@@ -57,6 +57,15 @@ public class EventServiceImpl implements EventService {
 
     @Override
     @Transactional(readOnly = true)
+    public List<EventDTO> getCompletedEventsByOrganizer(Long organizerID) {
+        return eventRepository.findByOrganizer_UserID(organizerID).stream()
+                .filter(event -> event.getStatus() == EventStatus.COMPLETED)
+                .map(event -> mapToHydratedDTO(event, organizerID))
+                .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public EventDTO getEventByID(Long eventID, Long currentUserID) {
         Event event = eventRepository.findById(eventID)
                 .orElseThrow(() -> new RuntimeException("Event not found with ID: " + eventID));

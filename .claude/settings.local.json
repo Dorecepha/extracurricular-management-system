@@ -1,38 +1,15 @@
 {
   "permissions": {
     "allow": [
-      "Bash(curl:*)",
-      "Bash(python generate_test_data_sql.py:*)",
-      "Bash(mysql:*)",
-      "Bash(python:*)",
-      "Bash(k6 run:*)",
-      "Bash(tee:*)",
-      "Bash(mvn compile:*)",
-      "Bash(.mvnw compile:*)",
-      "Bash(./mvnw compile:*)",
-      "Bash(./mvnw clean:*)",
-      "Bash(.mvnw clean:*)",
-      "Bash(./mvnw spring-boot:run:*)",
-      "Bash(taskkill:*)",
-      "Bash(./mvnw test:*)",
-      "Bash(k6 version:*)"
+      "Bash(cd \"D:/Projects/extracurricular-management-system\" && curl -s -o /dev/null -w \"%{http_code}\" http://localhost:8080/api/auth/login --max-time 3 2>&1 || echo \"BACKEND_DOWN\")",
+      "Bash(cd /d/Projects/extracurricular-management-system/backend && ./mvnw compile 2>&1 | head -100)",
+      "Bash(cd \"D:/Projects/extracurricular-management-system/backend\" && ./mvnw compile -q 2>&1 | tail -100)",
+      "Bash(cd \"D:/Projects/extracurricular-management-system\" && curl -s -X POST http://localhost:8080/api/auth/login -H \"Content-Type: application/json\" -d \"{\\\\\"email\\\\\":\\\\\"test@test.com\\\\\",\\\\\"password\\\\\":\\\\\"test\\\\\"}\" 2>&1)",
+      "Bash(cd \"D:/Projects/extracurricular-management-system/backend\" && ./mvnw compile -q 2>&1 | tail -30)",
+      "Bash(cd \"D:/Projects/extracurricular-management-system/backend\" && ./mvnw compile -q 2>&1)",
+      "Bash(find \"D:/Projects/extracurricular-management-system/frontend/ems-frontend/src\" -type f \\\\\\( -name \"*.jsx\" -o -name \"*.js\" -o -name \"*.css\" \\\\\\) -exec wc -l {} + 2>/dev/null | tail -1)",
+      "Bash(git add *)",
+      "Bash(git commit -m 'perf: stateless JWT claims, retry backoff with jitter, dashboard and UI refinements *)"
     ]
-  },
-  "hooks": {
-    "PostToolUse": [
-      {
-        "matcher": "Edit",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "npx tsc --noEmit"
-          }
-        ]
-      }
-    ]
-  },
-  "enabledPlugins": {
-    "frontend-design@claude-code-plugins": true,
-    "code-review@claude-plugins-official": true
   }
 }

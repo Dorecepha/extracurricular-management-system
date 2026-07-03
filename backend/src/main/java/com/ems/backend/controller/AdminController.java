@@ -7,6 +7,8 @@ import com.ems.backend.entity.User;
 import com.ems.backend.enums.AdminDepartment;
 import com.ems.backend.enums.ReviewType;
 import com.ems.backend.exception.ForbiddenException;
+import com.ems.backend.exception.NotFoundException;
+import com.ems.backend.repository.UserRepository;
 import com.ems.backend.security.CustomUserDetails;
 import com.ems.backend.service.EventUpdateRequestService;
 import com.ems.backend.service.ProposalService;
@@ -29,6 +31,7 @@ public class AdminController {
 
     private final ProposalService proposalService;
     private final EventUpdateRequestService eventUpdateRequestService;
+    private final UserRepository userRepository;
 
     public record RejectionRequest(String rejectionReason) {}
     public record ApprovalRequest(String comment) {}
@@ -129,7 +132,8 @@ public class AdminController {
     }
 
     private Administrator extractAdmin(CustomUserDetails userDetails) {
-        User user = userDetails.getUser();
+        User user = userRepository.findById(userDetails.getUserID())
+                .orElseThrow(() -> new NotFoundException("User not found"));
         if (!(user instanceof Administrator admin)) {
             throw new ForbiddenException("Only administrators can access this resource");
         }

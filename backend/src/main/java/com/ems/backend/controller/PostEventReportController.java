@@ -16,6 +16,7 @@ import com.ems.backend.repository.AttendanceRecordRepository;
 import com.ems.backend.repository.EventPhotoRepository;
 import com.ems.backend.repository.EventRepository;
 import com.ems.backend.repository.PostEventReportRepository;
+import com.ems.backend.repository.UserRepository;
 import com.ems.backend.security.CustomUserDetails;
 import com.ems.backend.service.AttendanceExcelParserService;
 import com.ems.backend.service.AuditLogService;
@@ -50,6 +51,7 @@ public class PostEventReportController {
     private final EmailService emailService;
     private final AuditLogService auditLogService;
     private final ObjectMapper objectMapper;
+    private final UserRepository userRepository;
 
     private static final String AUDIT_ACTION_REPORT_SUBMITTED = "REPORT_SUBMITTED";
     private static final String AUDIT_ACTION_REPORT_APPROVED = "REPORT_APPROVED";
@@ -93,7 +95,7 @@ public class PostEventReportController {
 
         var event = eventRepository.findById(eventID)
                 .orElseThrow(() -> new NotFoundException("Event not found"));
-        if (!event.getOrganizer().getUserID().equals(userDetails.getUser().getUserID())) {
+        if (!event.getOrganizer().getUserID().equals(userDetails.getUserID())) {
             return ResponseEntity.status(403).body(Response.<PostEventReportDTO>builder()
                     .statusCode(403)
                     .message("You are not authorized to submit a report for this event")
@@ -316,7 +318,7 @@ public class PostEventReportController {
 
     private OrganizationType resolveOrgTypeForAdmin(CustomUserDetails userDetails) {
         if (userDetails == null) return null;
-        User user = userDetails.getUser();
+        User user = userRepository.findById(userDetails.getUserID()).orElse(null);
         if (!(user instanceof Administrator admin)) return null;
         if (admin.getDepartment() == null) return null;
         return switch (admin.getDepartment()) {
@@ -477,7 +479,7 @@ public class PostEventReportController {
         // Ownership check: only the event's organizer may resubmit
         var event = eventRepository.findById(report.getEventID())
                 .orElseThrow(() -> new NotFoundException("Event not found"));
-        Long authenticatedUserID = userDetails.getUser().getUserID();
+        Long authenticatedUserID = userDetails.getUserID();
         if (!event.getOrganizer().getUserID().equals(authenticatedUserID)) {
             return ResponseEntity.status(403).body(Response.<PostEventReportDTO>builder()
                     .statusCode(403)
@@ -691,7 +693,7 @@ public class PostEventReportController {
 
         var certEvent = eventRepository.findById(report.getEventID())
                 .orElseThrow(() -> new NotFoundException("Event not found"));
-        if (!certEvent.getOrganizer().getUserID().equals(userDetails.getUser().getUserID())) {
+        if (!certEvent.getOrganizer().getUserID().equals(userDetails.getUserID())) {
             return ResponseEntity.status(403).body(Response.<String>builder()
                     .statusCode(403)
                     .message("You are not authorized to download the certificate template for this report")

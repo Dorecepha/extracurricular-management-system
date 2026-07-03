@@ -13,7 +13,10 @@ import ProposalDetails from './features/admin/ProposalDetails';
 import UpdateEventForm from './features/events/UpdateEventForm';
 import UpdateReviewList from './features/admin/UpdateReviewList';
 import UpdateReviewDetails from './features/admin/UpdateReviewDetails';
+import AdminReportList from './features/admin/AdminReportList';
+import AdminReportDetail from './features/admin/AdminReportDetail';
 import OrganizerEvents from './features/events/OrganizerEvents';
+import PostEventReportForm from './features/events/PostEventReportForm';
 import Dashboard from './features/dashboard/Dashboard';
 import AuditLogs from './features/admin/AuditLogs';
 import ManageAccounts from './features/admin/ManageAccounts';
@@ -33,6 +36,7 @@ function App() {
             <Route path="/events" element={<EventCalendarView />} />
             <Route path="/" element={<Navigate to="/events" replace />} />
 
+            {/* Routes for all authenticated users */}
             <Route element={<ProtectedRoute><Outlet /></ProtectedRoute>}>
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/events/:eventID/update" element={<UpdateEventForm />} />
@@ -40,12 +44,23 @@ function App() {
               <Route path="/managed-events" element={<OrganizerEvents />} />
               <Route path="/proposals/submit" element={<CreateProposalForm />} />
               <Route path="/proposals/my" element={<MyProposalsList />} />
+              <Route path="/events/:eventID/report" element={<PostEventReportForm />} />
+            </Route>
+
+            {/* Routes for SUPER_ADMIN only */}
+            <Route element={<ProtectedRoute requiredRole="SUPER_ADMIN" />}>
+              <Route path="/admin/accounts" element={<ManageAccounts />} />
+              <Route path="/admin/audit" element={<AuditLogs />} />
+            </Route>
+
+            {/* Routes for STANDARD_ADMIN only */}
+            <Route element={<ProtectedRoute requiredRole="ADMIN" />}>
               <Route path="/admin/proposals" element={<ProposalReviewList />} />
               <Route path="/admin/proposals/:proposalID" element={<ProposalDetails />} />
               <Route path="/admin/updates" element={<UpdateReviewList />} />
               <Route path="/admin/updates/:requestID" element={<UpdateReviewDetails />} />
-              <Route path="/admin/audit" element={<AuditLogs />} />
-              <Route path="/admin/accounts" element={<ManageAccounts />} />
+              <Route path="/admin/reports" element={<AdminReportList />} />
+              <Route path="/admin/reports/:reportID" element={<AdminReportDetail />} />
             </Route>
           </Route>
 

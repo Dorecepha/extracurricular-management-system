@@ -1,8 +1,8 @@
 package com.ems.backend.entity;
 
-import com.ems.backend.enums.ApprovalStatus;
 import com.ems.backend.enums.EventStatus;
 import com.ems.backend.enums.OrganizationType;
+import com.ems.backend.enums.UpdateRequestStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -70,10 +70,14 @@ public class EventUpdateRequest {
     @Column(name = "attachments_json", columnDefinition = "TEXT")
     private String attachmentsJson;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "organization_type")
+    private OrganizationType organizationType;
+
     // Status Fields
     @Enumerated(EnumType.STRING)
     @Builder.Default
-    private ApprovalStatus status = ApprovalStatus.PENDING;
+    private UpdateRequestStatus status = UpdateRequestStatus.PENDING_L1;
 
     @Column(name = "submitted_at")
     @Builder.Default

@@ -22,12 +22,30 @@ const formatDate = (value) => {
   return Number.isNaN(date.getTime()) ? value : format(date, 'dd/MM/yyyy');
 };
 
+const PENDING_STAGES = ['PENDING_L1', 'PENDING_L2', 'PENDING_L3'];
+
 const getStatusStyle = (status) => {
-  switch(status) {
-    case 'APPROVED': return 'bg-emerald-50 text-emerald-700 border-emerald-100'; // DNA FIX: Green for approved
-    case 'REJECTED': return 'bg-rose-50 text-rose-700 border-rose-100';
-    default: return 'bg-blue-50 text-blue-700 border-blue-100';
+  if (status === 'APPROVED') return 'bg-emerald-50 text-emerald-700 border-emerald-100';
+  if (status === 'REJECTED') return 'bg-rose-50 text-rose-700 border-rose-100';
+  if (PENDING_STAGES.includes(status)) return 'bg-blue-50 text-blue-700 border-blue-100';
+  return 'bg-slate-50 text-slate-700 border-slate-100';
+};
+
+const getStatusLabel = (status) => {
+  switch (status) {
+    case 'PENDING_L1': return 'Under Review — Stage 1';
+    case 'PENDING_L2': return 'Under Review — Stage 2';
+    case 'PENDING_L3': return 'Under Review — Stage 3';
+    case 'APPROVED': return 'Approved';
+    case 'REJECTED': return 'Rejected';
+    default: return status;
   }
+};
+
+const filterMatches = (proposal, filter) => {
+  if (filter === 'ALL') return true;
+  if (filter === 'PENDING') return PENDING_STAGES.includes(proposal.status);
+  return proposal.status === filter;
 };
 
 function MyProposalsList() {
@@ -86,7 +104,7 @@ function MyProposalsList() {
   if (isLoading) return <div className="p-20 flex justify-center"><Loader2 className="animate-spin text-[#1f5f89]" size={48} /></div>;
 
   const proposals = (Array.isArray(rawData) ? rawData : rawData?.content || [])
-    .filter(p => filter === 'ALL' || p.status === filter);
+    .filter(p => filterMatches(p, filter));
 
   return (
     <div className="max-w-5xl mx-auto space-y-8 pb-20">
@@ -108,7 +126,7 @@ function MyProposalsList() {
             <div className="space-y-2 flex-1">
                <div className="flex items-center gap-3">
                   <h3 className="text-xl font-bold text-slate-900">{p.title}</h3>
-                  <span className={`px-3 py-1 rounded-full text-[10px] font-black border uppercase ${getStatusStyle(p.status)}`}>{p.status}</span>
+                  <span className={`px-3 py-1 rounded-full text-[10px] font-black border uppercase ${getStatusStyle(p.status)}`}>{getStatusLabel(p.status)}</span>
                </div>
                <div className="flex gap-4 text-xs font-bold text-slate-400 uppercase">
                  <span className="flex items-center gap-1">
