@@ -29,4 +29,5 @@ public class DashboardDTOV2 extends DashboardDTO {
     // Admin additions
     private List<ActivityDTO> recentActivity;      // Last 20 audit log entries
     private Long weeklyRegistrationCount;          // Registrations past 7 days
+    private Long pendingReportsCount;              // SUBMITTED/LATE_SUBMITTED reports for admin's org type
 }

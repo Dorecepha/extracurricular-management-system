@@ -33,7 +33,7 @@ public class ProposalController {
     public ResponseEntity<Response<List<ProposalDTO>>> getMyProposals(
             @AuthenticationPrincipal CustomUserDetails userDetails) {
 
-        Long organizerID = userDetails.getUser().getUserID();
+        Long organizerID = userDetails.getUserID();
         List<ProposalDTO> proposals = proposalService.getProposalsByOrganizer(organizerID);
 
         Response<List<ProposalDTO>> response = Response.<List<ProposalDTO>>builder()
@@ -59,7 +59,7 @@ public class ProposalController {
             throw new ConstraintViolationException(violations);
         }
 
-        Long organizerID = userDetails.getUser().getUserID();
+        Long organizerID = userDetails.getUserID();
         ProposalDTO createdProposal = proposalService.createProposal(proposalDTO, files, organizerID);
 
         Response<ProposalDTO> response = Response.<ProposalDTO>builder()
@@ -79,7 +79,7 @@ public class ProposalController {
             @RequestPart(value = "files", required = false) MultipartFile[] files,
             @AuthenticationPrincipal CustomUserDetails userDetails) throws Exception {
 
-        Long organizerID = userDetails.getUser().getUserID();
+        Long organizerID = userDetails.getUserID();
         ProposalDTO dto = objectMapper.readValue(proposalJson, ProposalDTO.class);
         ProposalDTO updated = proposalService.updateAndResubmit(proposalID, dto, files, organizerID);
 

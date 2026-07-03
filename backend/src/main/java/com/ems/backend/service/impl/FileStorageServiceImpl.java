@@ -49,7 +49,7 @@ public class FileStorageServiceImpl implements FileStorageService {
                         ? Paths.get(file.getOriginalFilename()).getFileName().toString()
                         : "file";
                 String fileName = UUID.randomUUID() + "_" + originalFilename;
-                Path resolvedPath = uploadPath.resolve(fileName).normalize();
+                Path resolvedPath = uploadPath.resolve(fileName).normalize().toAbsolutePath();
                 if (!resolvedPath.startsWith(uploadPath.toAbsolutePath().normalize())) {
                     throw new RuntimeException("Invalid file path detected");
                 }
@@ -85,7 +85,7 @@ public class FileStorageServiceImpl implements FileStorageService {
                     ? Paths.get(file.getOriginalFilename()).getFileName().toString()
                     : "file";
             String fileName = UUID.randomUUID() + "_" + originalFilename;
-            Path resolvedPath = uploadPath.resolve(fileName).normalize();
+            Path resolvedPath = uploadPath.resolve(fileName).normalize().toAbsolutePath();
             if (!resolvedPath.startsWith(uploadPath.toAbsolutePath().normalize())) {
                 throw new RuntimeException("Invalid file path detected");
             }

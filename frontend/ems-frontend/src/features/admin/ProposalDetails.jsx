@@ -4,9 +4,37 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { adminApi } from './adminApi';
 import {
   ArrowLeft, CheckCircle, XCircle, Loader2, AlertCircle,
-  MapPin, Clock, Users, FileText, Paperclip, ExternalLink
+  MapPin, Clock, Users, FileText, Paperclip, ExternalLink, History
 } from 'lucide-react';
 import { format } from 'date-fns';
+
+const STAGE_LABELS = {
+  PENDING_L2: 'Awaiting Stage 2 Review (Faculty)',
+  PENDING_L3: 'Awaiting Stage 3 Review (University Board)',
+  APPROVED: 'Approved',
+  REJECTED: 'Rejected',
+};
+
+const getStageLabel = (status, organizationType) => {
+  if (status === 'PENDING_L1') {
+    const orgLabel = organizationType === 'STUDENT_ASSOCIATION' ? 'Student Association' : 'Youth Union';
+    return `Awaiting Stage 1 Review (${orgLabel})`;
+  }
+  return STAGE_LABELS[status] || status;
+};
+
+const STAGE_COLORS = {
+  PENDING_L1: 'text-blue-200',
+  PENDING_L2: 'text-yellow-200',
+  PENDING_L3: 'text-purple-200',
+  APPROVED: 'text-emerald-200',
+  REJECTED: 'text-red-200',
+};
+
+const DECISION_STYLES = {
+  APPROVED: 'bg-emerald-50 text-emerald-700 border-emerald-100',
+  REJECTED: 'bg-rose-50 text-rosese-700 border-rose-100',
+};
 
 const parseFiles = (json) => {
   try {
@@ -36,10 +64,13 @@ function ProposalDetails() {
     queryFn: () => adminApi.getProposalById(proposalID),
   });
 
+  const [approveComment, setApproveComment] = useState('');
+  const [isApproveModalOpen, setApproveModalOpen] = useState(false);
+
   const approveMutation = useMutation({
-    mutationFn: () => adminApi.approveProposal(proposalID),
+    mutationFn: () => adminApi.approveProposal(proposalID, approveComment || null),
     onSuccess: (res) => {
-      alert(res.message || 'Proposal Approved!');
+      alert(res.message || 'Proposal advanced to next stage!');
       queryClient.invalidateQueries(['admin', 'proposals']);
       navigate('/admin/proposals');
     }
@@ -103,9 +134,11 @@ function ProposalDetails() {
                 Submitted by: <span className="text-white not-italic font-bold">{proposal.organizerName || 'Unknown Submitter'}</span>
               </p>
             </div>
-            <div className="bg-black/10 p-4 rounded-2xl border border-white/10 text-center min-w-[120px]">
+            <div className="bg-black/10 p-4 rounded-2xl border border-white/10 text-center min-w-[140px]">
               <p className="text-[10px] font-black uppercase text-blue-200 mb-1">Status</p>
-              <p className="font-bold tracking-widest">{proposal.status}</p>
+              <p className={`font-bold text-sm ${STAGE_COLORS[proposal.status] || 'text-white'}`}>
+                {getStageLabel(proposal.status, proposal.organizationType)}
+              </p>
             </div>
           </div>
         </div>
@@ -171,13 +204,33 @@ function ProposalDetails() {
             </div>
           </div>
 
+          {proposal.approvalHistory && proposal.approvalHistory.length > 0 && (
+            <div className="space-y-4">
+              <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest flex items-center gap-2">
+                <History size={18} className="text-[#1f5f89]" /> Approval Trail
+              </h3>
+              <div className="space-y-3">
+                {proposal.approvalHistory.map((record) => (
+                  <div key={record.approvalID} className={`p-4 rounded-2xl border text-sm ${DECISION_STYLES[record.decision] || 'bg-slate-50 text-slate-700 border-slate-100'}`}>
+                    <div className="flex items-center justify-between">
+                      <span className="font-bold">Stage {record.stage} — {record.decision}</span>
+                      <span className="text-xs opacity-70">{record.decidedAt ? format(new Date(record.decidedAt), 'dd/MM/yyyy HH:mm') : ''}</span>
+                    </div>
+                    <p className="text-xs mt-1 opacity-80">By: {record.approverName} ({record.approverDepartment})</p>
+                    {record.comment && <p className="text-xs mt-2 italic">"{record.comment}"</p>}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           <div className="pt-10 border-t border-slate-100 flex flex-col md:flex-row gap-4">
-            <button 
-              onClick={() => approveMutation.mutate()}
+            <button
+              onClick={() => setApproveModalOpen(true)}
               disabled={approveMutation.isPending || rejectMutation.isPending}
               className="flex-1 bg-green-600 hover:bg-green-700 text-white py-5 rounded-2xl font-semibold tracking-wide flex items-center justify-center gap-3 transition shadow-lg shadow-green-900/10 disabled:opacity-50"
             >
-              <CheckCircle size={20}/> Approve Proposal
+              <CheckCircle size={20}/> Approve & Advance
             </button>
             <button 
               onClick={() => setRejectModalOpen(true)}
@@ -188,6 +241,31 @@ function ProposalDetails() {
           </div>
         </div>
       </div>
+
+      {isApproveModalOpen && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-6 z-50">
+          <div className="bg-white rounded-[40px] p-10 max-w-md w-full shadow-2xl animate-in zoom-in duration-200">
+            <h2 className="text-2xl font-black text-slate-900 uppercase mb-2 text-center">Approve &amp; Advance</h2>
+            <p className="text-slate-500 font-medium mb-6 text-center text-sm px-4">Optionally add a comment for the record.</p>
+            <textarea
+              className="w-full border-2 border-slate-100 rounded-3xl p-5 focus:border-green-500 outline-none transition h-28 font-medium text-sm"
+              placeholder="Comment (optional)..."
+              value={approveComment}
+              onChange={(e) => setApproveComment(e.target.value)}
+            />
+            <div className="flex gap-4 mt-8">
+              <button onClick={() => setApproveModalOpen(false)} className="flex-1 font-bold text-slate-400 text-xs uppercase tracking-widest">Cancel</button>
+              <button
+                onClick={() => { setApproveModalOpen(false); approveMutation.mutate(); }}
+                disabled={approveMutation.isPending}
+                className="flex-1 bg-green-600 text-white py-4 rounded-2xl font-semibold uppercase tracking-widest text-xs disabled:opacity-50 shadow-lg shadow-green-900/10"
+              >
+                Confirm Approve
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {isRejectModalOpen && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-6 z-50">

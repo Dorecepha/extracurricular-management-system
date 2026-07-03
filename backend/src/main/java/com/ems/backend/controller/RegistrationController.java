@@ -1,6 +1,9 @@
 package com.ems.backend.controller;
 
 import com.ems.backend.dto.RegistrationDTO;
+import com.ems.backend.entity.User;
+import com.ems.backend.exception.NotFoundException;
+import com.ems.backend.repository.UserRepository;
 import com.ems.backend.security.CustomUserDetails;
 import com.ems.backend.service.RegistrationService;
 import com.ems.backend.wrappers.Response;
@@ -25,6 +28,7 @@ import java.util.List;
 public class RegistrationController {
 
     private final RegistrationService registrationService;
+    private final UserRepository userRepository;
 
     @PostMapping("/event/{eventID}")
     @PreAuthorize("hasRole('STUDENT')")
@@ -32,7 +36,7 @@ public class RegistrationController {
             @PathVariable Long eventID,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
 
-        Long studentID = userDetails.getUser().getUserID();
+        Long studentID = userDetails.getUserID();
         registrationService.registerStudentForEvent(eventID, studentID);
 
         return ResponseEntity.status(HttpStatus.CREATED)
@@ -44,7 +48,7 @@ public class RegistrationController {
     public ResponseEntity<Response<List<RegistrationDTO>>> getMyRegistrations(
             @AuthenticationPrincipal CustomUserDetails userDetails) {
 
-        Long studentID = userDetails.getUser().getUserID();
+        Long studentID = userDetails.getUserID();
         List<RegistrationDTO> registrations = registrationService.getMyRegistrations(studentID);
 
         return ResponseEntity.ok(new Response<>(200, "Registrations retrieved successfully", registrations));
@@ -56,7 +60,7 @@ public class RegistrationController {
             @PathVariable Long registrationID,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
 
-        Long studentID = userDetails.getUser().getUserID();
+        Long studentID = userDetails.getUserID();
         registrationService.cancelRegistration(registrationID, studentID);
 
         return ResponseEntity.ok(new Response<>(200, "Registration cancelled", null));
@@ -69,7 +73,9 @@ public class RegistrationController {
             @AuthenticationPrincipal CustomUserDetails userDetails) {
 
         List<Map<String, String>> participants =
-                registrationService.getParticipantDetails(eventID, userDetails.getUser());
+                registrationService.getParticipantDetails(eventID,
+                        userRepository.findById(userDetails.getUserID())
+                                .orElseThrow(() -> new NotFoundException("User not found")));
 
         return ResponseEntity.ok(new Response<>(200, "Participants fetched", participants));
     }

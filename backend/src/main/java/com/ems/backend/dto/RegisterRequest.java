@@ -41,4 +41,5 @@ public class RegisterRequest {
     
     // Admin Specific
     private String adminLevel; // Optional, defaults usually
+    private String adminDepartment; // e.g., "YOUTH_UNION", "FACULTY", "RECTOR"
 }

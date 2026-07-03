@@ -29,7 +29,7 @@ function LoginPage() {
     setServerError('');
     try {
       const payload = await authApi.login(values);
-      const { token, role, user, id, userID, firstName, lastName, email } = payload || {};
+      const { token, role, user, id, userID, firstName, lastName, email, adminDepartment, adminLevel } = payload || {};
       if (!token) {
         setServerError('Login succeeded but no token was returned.');
         return;
@@ -50,6 +50,8 @@ function LoginPage() {
       localStorage.setItem('token', token);
       localStorage.setItem('userRole', normalizedUser?.role || role || 'USER');
       localStorage.setItem('user', JSON.stringify(normalizedUser));
+      if (adminDepartment) localStorage.setItem('adminDepartment', adminDepartment);
+      if (adminLevel) localStorage.setItem('adminLevel', adminLevel);
       
       navigate(from, { replace: true });
     } catch (error) {

@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/admin/users")
 @RequiredArgsConstructor
-@PreAuthorize("hasRole('ADMIN')")
+@PreAuthorize("hasRole('SUPER_ADMIN')")
 public class AdminUserController {
 
     private final UserService userService;
@@ -45,7 +45,7 @@ public class AdminUserController {
             @PathVariable Long userID,
             @RequestParam String status,
             @AuthenticationPrincipal CustomUserDetails admin) {
-        userService.updateUserStatus(userID, status, admin.getUser().getUserID());
+        userService.updateUserStatus(userID, status, admin.getUserID());
         return ResponseEntity.ok(new Response<>(200, "Account status updated to " + status, null));
     }
 
@@ -54,7 +54,7 @@ public class AdminUserController {
             @PathVariable Long userID,
             @RequestParam String role,
             @AuthenticationPrincipal CustomUserDetails admin) {
-        userService.updateUserRole(userID, role, admin.getUser().getUserID());
+        userService.updateUserRole(userID, role, admin.getUserID());
         return ResponseEntity.ok(new Response<>(200, "User role updated to " + role, null));
     }
 }

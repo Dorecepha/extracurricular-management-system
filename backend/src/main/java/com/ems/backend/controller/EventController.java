@@ -32,7 +32,7 @@ public class EventController {
             @AuthenticationPrincipal CustomUserDetails userDetails) {
 
         Pageable pageable = PageRequest.of(page, size);
-        Long currentUserId = userDetails != null ? userDetails.getUser().getUserID() : null;
+        Long currentUserId = userDetails != null ? userDetails.getUserID() : null;
         Page<EventDTO> events = eventService.getAllApprovedEvents(pageable, search, currentUserId);
 
         Response<Page<EventDTO>> response = Response.<Page<EventDTO>>builder()
@@ -47,7 +47,7 @@ public class EventController {
     @GetMapping("/{eventID}")
     public ResponseEntity<Response<EventDTO>> getEventByID(@PathVariable Long eventID,
                                                            @AuthenticationPrincipal CustomUserDetails userDetails) {
-        Long currentUserId = userDetails != null ? userDetails.getUser().getUserID() : null;
+        Long currentUserId = userDetails != null ? userDetails.getUserID() : null;
         EventDTO event = eventService.getEventByID(eventID, currentUserId);
 
         Response<EventDTO> response = Response.<EventDTO>builder()
@@ -64,13 +64,30 @@ public class EventController {
     public ResponseEntity<Response<List<EventDTO>>> getManagedEvents(
             @AuthenticationPrincipal CustomUserDetails userDetails) {
 
-        Long organizerId = userDetails.getUser().getUserID();
+        Long organizerId = userDetails.getUserID();
         List<EventDTO> managedEvents = eventService.getEventsByOrganizer(organizerId);
 
         Response<List<EventDTO>> response = Response.<List<EventDTO>>builder()
                 .statusCode(HttpStatus.OK.value())
                 .message("Managed events retrieved successfully")
                 .data(managedEvents)
+                .build();
+
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/managed/completed")
+    @PreAuthorize("hasRole('ORGANIZER')")
+    public ResponseEntity<Response<List<EventDTO>>> getCompletedManagedEvents(
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+
+        Long organizerId = userDetails.getUserID();
+        List<EventDTO> completedEvents = eventService.getCompletedEventsByOrganizer(organizerId);
+
+        Response<List<EventDTO>> response = Response.<List<EventDTO>>builder()
+                .statusCode(HttpStatus.OK.value())
+                .message("Completed events retrieved successfully")
+                .data(completedEvents)
                 .build();
 
         return ResponseEntity.ok(response);

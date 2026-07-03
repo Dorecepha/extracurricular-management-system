@@ -297,7 +297,8 @@ public class ProposalServiceImpl implements ProposalService {
         if (auth == null || !(auth.getPrincipal() instanceof CustomUserDetails userDetails)) {
             throw new ForbiddenException("Not authenticated");
         }
-        User user = userDetails.getUser();
+        User user = userRepository.findById(userDetails.getUserID())
+                .orElseThrow(() -> new ForbiddenException("User not found"));
         if (!(user instanceof Administrator admin)) {
             throw new ForbiddenException("Only administrators can perform this action");
         }

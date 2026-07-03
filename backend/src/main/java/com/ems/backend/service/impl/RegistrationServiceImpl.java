@@ -103,9 +103,12 @@ public class RegistrationServiceImpl implements RegistrationService {
                 if (attempt >= maxAttempts) {
                     throw new IllegalStateException("High traffic detected. Please try again.");
                 }
-                // Small backoff before retry
+                // OPTIMIZATION: Exponential backoff with jitter (Week 3)
+                // Formula: backoffMs = (2^attempt * 25) + random(0-25), capped at 200ms
+                long backoffMs = (long) (Math.pow(2, attempt) * 25 + Math.random() * 25);
+                backoffMs = Math.min(backoffMs, 200);
                 try {
-                    Thread.sleep(50);
+                    Thread.sleep(backoffMs);
                 } catch (InterruptedException ignored) {
                     Thread.currentThread().interrupt();
                 }

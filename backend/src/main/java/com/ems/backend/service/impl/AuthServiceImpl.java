@@ -112,8 +112,14 @@ public class AuthServiceImpl implements AuthService {
 
         var user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new com.ems.backend.exception.NotFoundException("User not found"));
-        
-        var jwtToken = jwtUtils.generateToken(user.getEmail());
+
+        // OPTIMIZATION: Generate JWT with user claims for stateless auth (no DB lookup on each request)
+        var jwtToken = jwtUtils.generateToken(
+                user.getEmail(),
+                user.getUserID(),
+                user.getRole().name(),
+                user.getFirstName()
+        );
 
         // Build the DTO first
         String adminDepartment = null;

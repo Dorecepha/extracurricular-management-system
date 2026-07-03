@@ -1,7 +1,7 @@
 package com.ems.backend.entity;
 
-import com.ems.backend.enums.ApprovalStatus;
 import com.ems.backend.enums.OrganizationType;
+import com.ems.backend.enums.ProposalStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -55,7 +55,7 @@ public class Proposal {
 
     @Enumerated(EnumType.STRING)
     @Builder.Default
-    private ApprovalStatus status = ApprovalStatus.PENDING;
+    private ProposalStatus status = ProposalStatus.PENDING_L1;
 
     @Column(name = "submitted_at")
     @Builder.Default

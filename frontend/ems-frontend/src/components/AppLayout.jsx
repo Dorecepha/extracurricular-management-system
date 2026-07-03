@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
-import { Calendar, FilePlus, ClipboardList, ShieldCheck, LogOut, Bookmark, LayoutDashboard, Users } from 'lucide-react';
-import { safeParseUser, safeGetItem, clearAuthData } from '../lib/safeParse';
+import { Calendar, FilePlus, ClipboardList, ShieldCheck, LogOut, Bookmark, LayoutDashboard, Users, FileCheck } from 'lucide-react';
+import { safeParseUser, safeGetItem, safeParseAdminLevel, clearAuthData } from '../lib/safeParse';
 
 function AppLayout() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [user, setUser] = useState(null);
+  const [adminLevel, setAdminLevel] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -19,21 +20,27 @@ function AppLayout() {
       return;
     }
     setUser(userData);
+    setAdminLevel(safeParseAdminLevel());
     setIsLoading(false);
   }, [navigate]);
 
   if (isLoading) return null;
 
+  const isSuperAdmin = adminLevel === 'SUPER_ADMIN';
+  const isStandardAdmin = user?.role === 'ADMIN' && !isSuperAdmin;
+  const isL1Admin = isStandardAdmin && ['YOUTH_UNION', 'STUDENT_ASSOCIATION'].includes(safeGetItem('adminDepartment'));
+
   const navItems = [
-    { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, roles: ['STUDENT', 'ORGANIZER', 'ADMIN'] },
-    { to: '/events', label: 'Events Calendar', icon: Calendar, roles: ['STUDENT', 'ORGANIZER', 'ADMIN', 'GUEST'] },
-    { to: '/proposals/submit', label: 'Apply to Host', icon: FilePlus, roles: ['ORGANIZER'] },
-    { to: '/managed-events', label: 'Managed Events', icon: ClipboardList, roles: ['ORGANIZER'] },
-    { to: '/proposals/my', label: 'My Applications', icon: Bookmark, roles: ['ORGANIZER'] },
-    { to: '/my-events', label: 'My Registrations', icon: Bookmark, roles: ['STUDENT'] },
-    { to: '/admin/proposals', label: 'Review Inbox', icon: ShieldCheck, roles: ['ADMIN'] },
-    { to: '/admin/accounts', label: 'Manage Accounts', icon: Users, roles: ['ADMIN'] },
-    { to: '/admin/audit', label: 'Audit Trail', icon: ShieldCheck, roles: ['ADMIN'] },
+    { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, show: ['STUDENT', 'ORGANIZER', 'ADMIN'].includes(user?.role) },
+    { to: '/events', label: 'Events Calendar', icon: Calendar, show: true },
+    { to: '/proposals/submit', label: 'Apply to Host', icon: FilePlus, show: user?.role === 'ORGANIZER' },
+    { to: '/managed-events', label: 'Managed Events', icon: ClipboardList, show: user?.role === 'ORGANIZER' },
+    { to: '/proposals/my', label: 'My Applications', icon: Bookmark, show: user?.role === 'ORGANIZER' },
+    { to: '/my-events', label: 'My Registrations', icon: Bookmark, show: user?.role === 'STUDENT' },
+    { to: '/admin/proposals', label: 'Review Inbox', icon: ShieldCheck, show: isStandardAdmin },
+    { to: '/admin/reports', label: 'Report Reviews', icon: FileCheck, show: isL1Admin },
+    { to: '/admin/accounts', label: 'Manage Accounts', icon: Users, show: isSuperAdmin },
+    { to: '/admin/audit', label: 'Audit Trail', icon: ShieldCheck, show: isSuperAdmin },
   ];
   const roleValue = user?.role || 'GUEST';
   const roleLabel = roleValue.replace('EVENT_', '');
@@ -61,7 +68,7 @@ function AppLayout() {
         </div>
 
         <nav className="flex-1 px-4 space-y-1">
-          {navItems.filter(item => item.roles.includes(user?.role || 'GUEST')).map(item => (
+          {navItems.filter(item => item.show).map(item => (
             <NavLink
               key={item.to}
               to={item.to}

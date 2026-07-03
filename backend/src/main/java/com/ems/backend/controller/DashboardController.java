@@ -65,7 +65,8 @@ public class DashboardController {
     public ResponseEntity<Response<DashboardDTO>> getStats(
             @AuthenticationPrincipal CustomUserDetails userDetails) {
 
-        User user = userDetails.getUser();
+        User user = userRepository.findById(userDetails.getUserID())
+                .orElseThrow(() -> new com.ems.backend.exception.NotFoundException("User not found"));
         var builder = DashboardDTO.builder();
 
         UserRole role = user.getRole();
@@ -119,7 +120,8 @@ public class DashboardController {
     public ResponseEntity<Response<DashboardDTOV2>> getStatsV2(
             @AuthenticationPrincipal CustomUserDetails userDetails) {
 
-        User user = userDetails.getUser();
+        User user = userRepository.findById(userDetails.getUserID())
+                .orElseThrow(() -> new com.ems.backend.exception.NotFoundException("User not found"));
         DashboardDTOV2.DashboardDTOV2Builder<?, ?> builder = DashboardDTOV2.builder();
 
         UserRole role = user.getRole();

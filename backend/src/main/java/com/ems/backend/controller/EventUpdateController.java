@@ -1,6 +1,11 @@
 package com.ems.backend.controller;
 
 import com.ems.backend.dto.EventUpdateRequestDTO;
+import com.ems.backend.entity.Administrator;
+import com.ems.backend.entity.User;
+import com.ems.backend.exception.ForbiddenException;
+import com.ems.backend.exception.NotFoundException;
+import com.ems.backend.repository.UserRepository;
 import com.ems.backend.security.CustomUserDetails;
 import com.ems.backend.service.EventUpdateRequestService;
 import com.ems.backend.wrappers.Response;
@@ -23,6 +28,7 @@ public class EventUpdateController {
     public record RejectionRequest(String rejectionReason) {}
 
     private final EventUpdateRequestService eventUpdateRequestService;
+    private final UserRepository userRepository;
     private final ObjectMapper mapper; // Injected from JacksonConfig bean
 
     @PostMapping(value = "/event/{eventID}", consumes = {"multipart/form-data"})
@@ -34,7 +40,7 @@ public class EventUpdateController {
             @AuthenticationPrincipal CustomUserDetails userDetails) throws Exception {
 
         EventUpdateRequestDTO dto = mapper.readValue(updateJson, EventUpdateRequestDTO.class);
-        Long organizerID = userDetails.getUser().getUserID();
+        Long organizerID = userDetails.getUserID();
         EventUpdateRequestDTO created = eventUpdateRequestService.submitUpdateRequest(eventID, dto, files, organizerID);
 
         Response<EventUpdateRequestDTO> response = Response.<EventUpdateRequestDTO>builder()
@@ -48,8 +54,14 @@ public class EventUpdateController {
 
     @GetMapping("/pending")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Response<List<EventUpdateRequestDTO>>> getPendingRequests() {
-        List<EventUpdateRequestDTO> pendingRequests = eventUpdateRequestService.getPendingRequests();
+    public ResponseEntity<Response<List<EventUpdateRequestDTO>>> getPendingRequests(
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        User user = userRepository.findById(userDetails.getUserID())
+                .orElseThrow(() -> new NotFoundException("User not found"));
+        if (!(user instanceof Administrator admin)) {
+            throw new ForbiddenException("Only administrators can access this resource");
+        }
+        List<EventUpdateRequestDTO> pendingRequests = eventUpdateRequestService.getPendingRequestsForAdmin(admin);
 
         Response<List<EventUpdateRequestDTO>> response = Response.<List<EventUpdateRequestDTO>>builder()
                 .statusCode(HttpStatus.OK.value())
@@ -67,7 +79,7 @@ public class EventUpdateController {
             @RequestParam(defaultValue = "false") boolean notify,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
 
-        Long adminID = userDetails.getUser().getUserID();
+        Long adminID = userDetails.getUserID();
         eventUpdateRequestService.approveRequest(requestID, adminID, notify);
 
         Response<Void> response = Response.<Void>builder()
@@ -87,7 +99,7 @@ public class EventUpdateController {
             @RequestParam(defaultValue = "false") boolean notify,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
 
-        Long adminID = userDetails.getUser().getUserID();
+        Long adminID = userDetails.getUserID();
         eventUpdateRequestService.rejectRequest(requestID, rejectionRequest.rejectionReason(), adminID, notify);
 
         Response<Void> response = Response.<Void>builder()

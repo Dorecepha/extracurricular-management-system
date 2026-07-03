@@ -2,14 +2,16 @@ import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Loader2 } from 'lucide-react';
 import { dashboardApiV2 } from './dashboardApiV2';
-import { safeParseUser } from '../../lib/safeParse';
+import { safeParseUser, safeParseAdminLevel } from '../../lib/safeParse';
 import AgendaSidebar from './components/AgendaSidebar';
 import StudentDashboard from './roles/StudentDashboard';
 import OrganizerDashboard from './roles/OrganizerDashboard';
 import AdminDashboard from './roles/AdminDashboard';
+import SuperAdminDashboard from './roles/SuperAdminDashboard';
 
 function DashboardV2() {
   const user = safeParseUser();
+  const adminLevel = safeParseAdminLevel();
   const { data: stats, isLoading, error } = useQuery({
     queryKey: ['dashboard-stats-v2', user?.userID],
     queryFn: dashboardApiV2.getStats,
@@ -51,7 +53,8 @@ function DashboardV2() {
           {(user?.role === 'ORGANIZER' || user?.role === 'EVENT_ORGANIZER') && (
             <OrganizerDashboard stats={stats} />
           )}
-          {user?.role === 'ADMIN' && <AdminDashboard stats={stats} />}
+          {user?.role === 'ADMIN' && adminLevel === 'SUPER_ADMIN' && <SuperAdminDashboard stats={stats} />}
+          {user?.role === 'ADMIN' && adminLevel !== 'SUPER_ADMIN' && <AdminDashboard stats={stats} />}
         </div>
 
         {/* Agenda Sidebar (300px fixed, hidden on mobile) */}

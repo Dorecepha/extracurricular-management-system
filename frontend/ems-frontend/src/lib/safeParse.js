@@ -29,11 +29,17 @@ export const safeParseUser = () => {
   }
 };
 
+export const safeParseAdminLevel = () => {
+  return safeGetItem('adminLevel') || null;
+};
+
 export const clearAuthData = () => {
   try {
     localStorage?.removeItem?.('token');
     localStorage?.removeItem?.('userRole');
     localStorage?.removeItem?.('user');
+    localStorage?.removeItem?.('adminDepartment');
+    localStorage?.removeItem?.('adminLevel');
   } catch (err) {
     console.warn('clearAuthData error', err);
   }
